@@ -18,6 +18,28 @@ This is a fork of [lDEVinux/eaglercraft](https://github.com/lDEVinux/eaglercraft
 - The bundled server's `view-distance` is lowered from 10 to 6, so joins send about 2.6x less chunk data.
 - Fixed the `?server=` join link in the downloadable `index.html`. It crashed on startup.
 
+### New features
+
+Open **Options → Mindcraft Settings...** to change these.
+
+**Performance**
+- **Render Scale** (25%–100%): renders the 3D view at lower resolution and stretches it to fit. 50% is about 4x fewer pixels, which helps a lot on Chromebooks.
+- **Presets**: Potato, Balanced and Quality set render distance, graphics, smooth lighting, particles, chunk updates and render scale in one click.
+- **HUD** modes: Off, FPS + Ping, or Detailed (the original stats line). Your ping to the server is shown in color.
+- Chunk Updates and Max Framerate are also on this screen.
+
+**Multiplayer**
+- **Auto Reconnect**: if the connection drops, the game retries on its own with a countdown, backing off (5s, 10s, 15s...) for up to 5 attempts so it stays under the server's login rate limit. It never retries after a kick, ban or rate-limit block.
+- A **Reconnect** button on the disconnect screen.
+- **Ping numbers** (in ms) next to each player in the tab list.
+
+**Gameplay**
+- **Zoom**: hold **C**. It zooms in smoothly, and you can scroll while holding it to zoom further. Mouse sensitivity drops while zoomed.
+- **Sprint key**: hold **R** to sprint. The key was bound upstream but did nothing. Turn on **Toggle Sprint** to press it once instead.
+- **Fullbright**: see in caves and at night.
+- **Keystrokes + CPS** overlay: shows WASD, mouse buttons with clicks per second, and space.
+- Coordinates now show the direction you're facing.
+
 ### Quick start
 
 **Play:** host the `stable-download/web` folder (or `javascript/`) on any HTTP server and open it in a browser.

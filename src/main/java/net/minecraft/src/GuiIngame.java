@@ -20,6 +20,7 @@ public class GuiIngame extends Gui {
 
 	/** ChatGUI instance that retains all previous chat data */
 	private final GuiNewChat persistantChatGUI;
+	private final GuiMindcraftHud mindcraftHud = new GuiMindcraftHud();
 	private int updateCounter = 0;
 
 	/** The string specifying which record music is playing */
@@ -408,6 +409,10 @@ public class GuiIngame extends Gui {
 		
 		this.mc.debug = "" + Minecraft.debugFPS + " fps, " + Minecraft.debugChunkUpdates + " chunk updates";
 
+		if (this.mc.gameSettings.showKeystrokes && !this.mc.gameSettings.showDebugInfo) {
+			this.mindcraftHud.drawKeystrokes(this.mc, var8, var6, var7);
+		}
+
 		if (this.mc.gameSettings.showDebugInfo) {
 			this.mc.mcProfiler.startSection("debug");
 			EaglerAdapter.glPushMatrix();
@@ -480,11 +485,7 @@ public class GuiIngame extends Gui {
 		}else {
 			EaglerAdapter.glPushMatrix();
 			EaglerAdapter.glScalef(0.75f, 0.75f, 0.75f);
-			var8.drawStringWithShadow(this.mc.renderGlobal.getDebugInfoShort(), 2, 2, 16777215);
-
-			if(mc.gameSettings.showCoordinates) {
-				var8.drawStringWithShadow("x: "+MathHelper.floor_double(this.mc.thePlayer.posX)+", y: "+MathHelper.floor_double(this.mc.thePlayer.posY)+", z: "+MathHelper.floor_double(this.mc.thePlayer.posZ), 2, 12, 16777215);
-			}
+			GuiMindcraftHud.drawCompactInfo(this.mc, var8);
 			
 			if(IntegratedServer.isWorldRunning()) {
 				String strr = "Playing Singleplayer";
@@ -621,6 +622,14 @@ public class GuiIngame extends Gui {
 					this.zLevel += 100.0F;
 					this.drawTexturedModalRect(var47 + var17 - 12, var22, 0 + var54 * 10, 176 + var27 * 8, 10, 8);
 					this.zLevel -= 100.0F;
+
+					if (this.mc.gameSettings.showPingNumbers && var48.responseTime >= 0 && var42 == null) {
+						String pingStr = GuiMindcraftHud.pingColor(var48.responseTime) + var48.responseTime + "ms";
+						int pingX = var47 + var17 - 14 - var8.getStringWidth(pingStr);
+						if (pingX > var47 + var8.getStringWidth(var51) + 4) {
+							var8.drawStringWithShadow(pingStr, pingX, var22, 16777215);
+						}
+					}
 				}
 			}
 		}

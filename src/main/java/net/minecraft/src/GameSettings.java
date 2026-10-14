@@ -147,6 +147,17 @@ public class GameSettings {
 	
 	public boolean adderall = false;
 
+	/** Fraction of native resolution the 3D view renders at, see EaglerAdapter.setRenderScale */
+	public float renderScale = 1.0f;
+
+	/** Top-left HUD: 0 = off, 1 = FPS and ping only, 2 = detailed */
+	public int hudMode = 2;
+	public boolean fullbright = false;
+	public boolean toggleSprint = false;
+	public boolean showKeystrokes = false;
+	public boolean autoReconnect = true;
+	public boolean showPingNumbers = true;
+
 	public GameSettings(Minecraft par1Minecraft) {
 		this.keyBindings = new KeyBinding[] { this.keyBindAttack, this.keyBindUseItem, this.keyBindForward, this.keyBindLeft, this.keyBindBack, this.keyBindRight, this.keyBindJump, this.keyBindSneak, this.keyBindDrop, this.keyBindInventory,
 				this.keyBindChat, this.keyBindPlayerList, this.keyBindPickBlock, this.keyBindSprint, this.keyBindZoom, this.keyBindFunction };
@@ -545,6 +556,14 @@ public class GameSettings {
 			if(yee.hasKey("hideJoinCode")) hideJoinCode = yee.getBoolean("hideJoinCode");
 			if(yee.hasKey("relayTimeout")) relayTimeout = yee.getByte("relayTimeout");
 			if(yee.hasKey("adderall")) adderall = yee.getBoolean("adderall");
+			if(yee.hasKey("renderScale")) renderScale = yee.getFloat("renderScale");
+			if(yee.hasKey("hudMode")) hudMode = yee.getByte("hudMode");
+			if(yee.hasKey("fullbright")) fullbright = yee.getBoolean("fullbright");
+			if(yee.hasKey("toggleSprint")) toggleSprint = yee.getBoolean("toggleSprint");
+			if(yee.hasKey("showKeystrokes")) showKeystrokes = yee.getBoolean("showKeystrokes");
+			if(yee.hasKey("autoReconnect")) autoReconnect = yee.getBoolean("autoReconnect");
+			if(yee.hasKey("showPingNumbers")) showPingNumbers = yee.getBoolean("showPingNumbers");
+			EaglerAdapter.setRenderScale(renderScale);
 			
 			if(voiceListenRadius < 5) voiceListenRadius = 5;
 			else if(voiceListenRadius > 22) voiceListenRadius = 22;
@@ -626,6 +645,13 @@ public class GameSettings {
 		yee.setBoolean("hideJoinCode", hideJoinCode);
 		yee.setByte("relayTimeout", (byte)relayTimeout);
 		yee.setBoolean("adderall", adderall);
+		yee.setFloat("renderScale", renderScale);
+		yee.setByte("hudMode", (byte)hudMode);
+		yee.setBoolean("fullbright", fullbright);
+		yee.setBoolean("toggleSprint", toggleSprint);
+		yee.setBoolean("showKeystrokes", showKeystrokes);
+		yee.setBoolean("autoReconnect", autoReconnect);
+		yee.setBoolean("showPingNumbers", showPingNumbers);
 		
 		for (int var4 = 0; var4 < this.keyBindings.length; ++var4) {
 			yee.setInteger(keyBindings[var4].keyDescription, keyBindings[var4].keyCode);
@@ -655,6 +681,49 @@ public class GameSettings {
 		if(showSkinLeftLeg) skinLayersByte |= 16;
 		if(showSkinRightLeg) skinLayersByte |= 32;
 		return skinLayersByte;
+	}
+
+	/**
+	 * Performance presets for the Mindcraft settings screen,
+	 * 0 = potato (weak chromebooks), 1 = balanced, 2 = quality
+	 */
+	public void applyPerformancePreset(int preset) {
+		int oldDistance = renderDistance;
+		boolean oldFancy = fancyGraphics;
+		int oldAO = ambientOcclusion;
+		if(preset == 0) {
+			renderDistance = 3;
+			fancyGraphics = false;
+			ambientOcclusion = 0;
+			clouds = false;
+			particleSetting = 2;
+			chunkUpdatePerFrame = 0;
+			renderScale = 0.5f;
+		}else if(preset == 1) {
+			renderDistance = 2;
+			fancyGraphics = false;
+			ambientOcclusion = 0;
+			clouds = false;
+			particleSetting = 1;
+			chunkUpdatePerFrame = 1;
+			renderScale = 0.75f;
+		}else {
+			renderDistance = 1;
+			fancyGraphics = true;
+			ambientOcclusion = 2;
+			clouds = true;
+			particleSetting = 0;
+			chunkUpdatePerFrame = 2;
+			renderScale = 1.0f;
+		}
+		EaglerAdapter.setRenderScale(renderScale);
+		if(oldFancy != fancyGraphics || oldAO != ambientOcclusion) {
+			mc.renderGlobal.loadRenderers();
+		}
+		if(oldDistance != renderDistance && mc.isSingleplayerOrLAN()) {
+			mc.displayEaglercraftText("changing render distance in singleplayer may take a few seconds, this is not a glitch plz don't report");
+		}
+		saveOptions();
 	}
 
 	/**

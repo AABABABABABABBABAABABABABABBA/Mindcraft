@@ -22,6 +22,7 @@ import net.lax1dude.eaglercraft.adapter.Tessellator;
 import net.lax1dude.eaglercraft.glemu.FixedFunctionShader;
 import net.minecraft.src.AchievementList;
 import net.minecraft.src.AxisAlignedBB;
+import net.minecraft.src.GuiMindcraftHud;
 import net.minecraft.src.Block;
 import net.minecraft.src.ChatAllowedCharacters;
 import net.minecraft.src.ColorizerFoliage;
@@ -1218,6 +1219,9 @@ public class Minecraft implements Runnable {
 
 				if (EaglerAdapter.mouseGetEventButtonState()) {
 					KeyBinding.onTick(EaglerAdapter.mouseGetEventButton() - 100);
+					if (this.currentScreen == null) {
+						GuiMindcraftHud.recordClick(EaglerAdapter.mouseGetEventButton());
+					}
 				}
 
 				long var1 = getSystemTime() - this.systemTime;
@@ -1225,7 +1229,9 @@ public class Minecraft implements Runnable {
 				if (var1 <= 200L) {
 					int var10 = EaglerAdapter.mouseGetEventDWheel();
 
-					if (var10 != 0) {
+					if (var10 != 0 && this.gameSettings.keyBindZoom.pressed) {
+						this.entityRenderer.adjustZoom(var10);
+					} else if (var10 != 0) {
 						this.thePlayer.inventory.changeCurrentItem(var10);
 
 						if (this.gameSettings.noclip) {

@@ -312,10 +312,48 @@ public class EntityRenderer {
 	 * Changes the field of view of the player depending on if they are underwater
 	 * or not
 	 */
+	/** FOV while zoomed, adjusted with the scroll wheel while the zoom key is held */
+	private float zoomFov = 15.0F;
+
+	/** 0 = not zoomed, 1 = fully zoomed, eased so zooming in and out is smooth */
+	private float zoomProgress = 0.0F;
+	private long lastZoomUpdate = 0L;
+
+	public void adjustZoom(int wheel) {
+		zoomFov *= wheel > 0 ? 0.8F : 1.25F;
+		if(zoomFov < 3.0F) zoomFov = 3.0F;
+		if(zoomFov > 50.0F) zoomFov = 50.0F;
+	}
+
+	public boolean isZoomed() {
+		return zoomProgress > 0.5F;
+	}
+
+	private void updateZoom() {
+		long now = System.nanoTime();
+		float dt = lastZoomUpdate == 0L ? 0.0F : (now - lastZoomUpdate) / 1000000000.0F;
+		lastZoomUpdate = now;
+		if(dt > 0.1F) dt = 0.1F;
+		boolean zooming = this.mc.currentScreen == null && this.mc.gameSettings.keyBindZoom.pressed;
+		if(zooming) {
+			zoomProgress = Math.min(1.0F, zoomProgress + dt * 8.0F);
+		}else {
+			zoomProgress = Math.max(0.0F, zoomProgress - dt * 8.0F);
+			if(zoomProgress == 0.0F) zoomFov = 15.0F;
+		}
+	}
+
 	private float getFOVModifier(float par1, boolean par2) {
-		if(this.mc.gameSettings.keyBindZoom.pressed) {
-			return 12.0F;
-		} else if (this.debugViewDirection > 0) {
+		float fov = getFOVModifier0(par1, par2);
+		if(zoomProgress > 0.0F) {
+			float t = zoomProgress * zoomProgress * (3.0F - 2.0F * zoomProgress);
+			fov += (zoomFov - fov) * t;
+		}
+		return fov;
+	}
+
+	private float getFOVModifier0(float par1, boolean par2) {
+		if (this.debugViewDirection > 0) {
 			return 90.0F;
 		} else {
 			EntityPlayer var3 = (EntityPlayer) this.mc.renderViewEntity;
@@ -791,6 +829,12 @@ public class EntityRenderer {
 					var15 = 1.0F;
 				}
 
+				if (this.mc.gameSettings.fullbright) {
+					var13 = 1.0F;
+					var14 = 1.0F;
+					var15 = 1.0F;
+				}
+
 				var16 = this.mc.gameSettings.gammaSetting + this.torchFlickerX * i * 0.4f;
 				var17 = 1.0F - var13;
 				float var18 = 1.0F - var14;
@@ -853,6 +897,7 @@ public class EntityRenderer {
 	 * the world and GUI
 	 */
 	public void updateCameraAndRender(float par1) {
+		this.updateZoom();
 		this.mc.mcProfiler.startSection("lightTex");
 
 		if (this.lightmapUpdateNeeded) {
@@ -873,7 +918,7 @@ public class EntityRenderer {
 		if (this.mc.inGameHasFocus && var2) {
 			this.mc.mouseHelper.mouseXYChange();
 			float var3 = this.mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-			if(this.mc.gameSettings.keyBindZoom.pressed) var3 *= 0.5f;
+			if(zoomProgress > 0.0F) var3 *= 1.0F - zoomProgress * (1.0F - Math.max(zoomFov / 70.0F, 0.15F));
 			float var4 = var3 * var3 * var3 * 8.0F;
 			float var5 = (float) this.mc.mouseHelper.deltaX * var4;
 			float var6 = (float) this.mc.mouseHelper.deltaY * var4;
@@ -1162,7 +1207,7 @@ public class EntityRenderer {
 			
 			//EaglerAdapter.glClear(EaglerAdapter.GL_DEPTH_BUFFER_BIT);
 			
-			if (!this.mc.gameSettings.keyBindZoom.pressed) {
+			if (!this.isZoomed()) {
 				this.renderHand(par1, var13);
 			}
 			

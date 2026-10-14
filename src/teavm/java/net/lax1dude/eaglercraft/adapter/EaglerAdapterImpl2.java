@@ -339,8 +339,8 @@ public class EaglerAdapterImpl2 {
 		canvas.addEventListener("mousemove", mousemove = new EventListener<MouseEvent>() {
 			@Override
 			public void handleEvent(MouseEvent evt) {
-				mouseX = (int)(getOffsetX(evt) * win.getDevicePixelRatio());
-				mouseY = (int)((canvas.getClientHeight() - getOffsetY(evt)) * win.getDevicePixelRatio());
+				mouseX = (int)(getOffsetX(evt) * getPixelScale());
+				mouseY = (int)((canvas.getClientHeight() - getOffsetY(evt)) * getPixelScale());
 				mouseDX += evt.getMovementX();
 				mouseDY += -evt.getMovementY();
 				if(hasBeenActive()) {
@@ -1640,10 +1640,10 @@ public class EaglerAdapterImpl2 {
 		return mouseY;
 	}
 	public static final int mouseGetEventX() {
-		return currentEvent == null ? -1 : (int)(currentEvent.getClientX() * win.getDevicePixelRatio());
+		return currentEvent == null ? -1 : (int)(currentEvent.getClientX() * getPixelScale());
 	}
 	public static final int mouseGetEventY() {
-		return currentEvent == null ? -1 : (int)((canvas.getClientHeight() - currentEvent.getClientY()) * win.getDevicePixelRatio());
+		return currentEvent == null ? -1 : (int)((canvas.getClientHeight() - currentEvent.getClientY()) * getPixelScale());
 	}
 	public static final boolean keysNext() {
 		if(unpressCTRL) { //un-press ctrl after copy/paste permission
@@ -1744,9 +1744,9 @@ public class EaglerAdapterImpl2 {
 		}
 		lastFrameTime = perfNow();
 		// resize only after the previous frame is on screen, resizing clears the drawing buffer
-		double r = win.getDevicePixelRatio();
-		int w2 = (int)(parent.getClientWidth() * r);
-		int h2 = (int)(parent.getClientHeight() * r);
+		double r = getPixelScale();
+		int w2 = Math.max((int)(parent.getClientWidth() * r), 1);
+		int h2 = Math.max((int)(parent.getClientHeight() * r), 1);
 		if(canvas.getWidth() != w2) {
 			canvas.setWidth(w2);
 		}
@@ -1755,7 +1755,21 @@ public class EaglerAdapterImpl2 {
 		}
 	}
 	public static final float getContentScaling() {
-		 return (float)win.getDevicePixelRatio();
+		 return (float)getPixelScale();
+	}
+
+	private static double renderScale = 1.0;
+
+	/**
+	 * Fraction of the screen's native resolution the game renders at, the canvas
+	 * is stretched back up by CSS so lower values trade sharpness for speed
+	 */
+	public static final void setRenderScale(float scale) {
+		renderScale = scale < 0.25f ? 0.25 : (scale > 1.0f ? 1.0 : scale);
+	}
+
+	private static final double getPixelScale() {
+		return win.getDevicePixelRatio() * renderScale;
 	}
 	public static final void setVSyncEnabled(boolean p1) {
 		

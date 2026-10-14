@@ -5,6 +5,7 @@ import java.util.List;
 
 import net.lax1dude.eaglercraft.ConfigConstants;
 import net.lax1dude.eaglercraft.EaglerAdapter;
+import net.minecraft.client.Minecraft;
 
 public class GuiDisconnected extends GuiScreen {
 	/** The error message. */
@@ -21,9 +22,35 @@ public class GuiDisconnected extends GuiScreen {
 	private List field_74245_d;
 	private final GuiScreen field_98095_n;
 
+	/** Server to reconnect to, null for singleplayer/LAN or when reconnecting makes no sense */
+	private final ServerData reconnectServer;
+
+	/** true when the connection dropped or failed, as opposed to a kick or ban */
+	private final boolean connectionLost;
+
+	private static final int MAX_AUTO_RECONNECTS = 5;
+	private static int autoReconnectAttempts = 0;
+	private static long lastAutoReconnect = 0L;
+
+	private long autoReconnectAt = -1L;
+
 	public GuiDisconnected(GuiScreen par1GuiScreen, String par2Str, String par3Str, Object... par4ArrayOfObj) {
 		StringTranslate var5 = StringTranslate.getInstance();
 		this.field_98095_n = par1GuiScreen;
+		Minecraft mc = Minecraft.getMinecraft();
+		ServerData sd = mc.getServerData();
+		boolean blocked = par2Str.startsWith("disconnect.ratelimit") || par2Str.startsWith("disconnect.ip") || par2Str.equals("disconnect.requiresAuth") || (par3Str != null && par3Str.startsWith("RateLimit."));
+		this.reconnectServer = (sd == null || blocked || mc.isIntegratedServerRunning()) ? null : sd;
+		this.connectionLost = par2Str.equals("disconnect.lost") || par2Str.equals("connect.failed") ||
+				(par2Str.equals("disconnect.disconnected") && "disconnect.endOfStream".equals(par3Str));
+		if(Minecraft.getSystemTime() - lastAutoReconnect > 120000L) {
+			// a while since the last automatic attempt, the previous connection must have worked
+			autoReconnectAttempts = 0;
+		}
+		if(this.reconnectServer != null && this.connectionLost && mc.gameSettings.autoReconnect && autoReconnectAttempts < MAX_AUTO_RECONNECTS) {
+			// back off so we stay under the server's login rate limit
+			this.autoReconnectAt = Minecraft.getSystemTime() + 5000L * (autoReconnectAttempts + 1);
+		}
 		if(par2Str.startsWith("disconnect.ratelimit")) {
 			this.errorMessage = var5.translateKey(par2Str + ".title");
 			this.errorDetail = var5.translateKey(par2Str + ".description0");
@@ -67,6 +94,9 @@ public class GuiDisconnected extends GuiScreen {
 			this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 2 + this.height / 7, var1.translateKey("gui.toMenu")));
 		}else if("disconnect.requiresAuth".equals(this.errorMessage)){
 			this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height / 4 + 120 + 12, var1.translateKey("gui.toMenu")));
+		}else if(this.reconnectServer != null) {
+			this.buttonList.add(new GuiButton(1, this.width / 2 - 100, this.height - this.height / 5 - 64, "Reconnect"));
+			this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height - this.height / 5 - 40, var1.translateKey("gui.toMenu")));
 		}else {
 			this.buttonList.add(new GuiButton(0, this.width / 2 - 100, this.height - this.height / 5 - 40, var1.translateKey("gui.toMenu")));
 		}
@@ -80,7 +110,24 @@ public class GuiDisconnected extends GuiScreen {
 	 */
 	protected void actionPerformed(GuiButton par1GuiButton) {
 		if (par1GuiButton.id == 0) {
+			this.autoReconnectAt = -1L;
 			this.mc.displayGuiScreen(this.field_98095_n);
+		}
+		if (par1GuiButton.id == 1) {
+			reconnect();
+		}
+	}
+
+	private void reconnect() {
+		this.autoReconnectAt = -1L;
+		this.mc.displayGuiScreen(new GuiConnecting(this.field_98095_n, this.mc, this.reconnectServer));
+	}
+
+	public void updateScreen() {
+		if (this.autoReconnectAt > 0L && Minecraft.getSystemTime() >= this.autoReconnectAt) {
+			++autoReconnectAttempts;
+			lastAutoReconnect = Minecraft.getSystemTime();
+			reconnect();
 		}
 	}
 
@@ -127,6 +174,13 @@ public class GuiDisconnected extends GuiScreen {
 					String var6 = (String) var5.next();
 					this.drawCenteredString(this.fontRenderer, var6, this.width / 2, var4, 16777215);
 				}
+			}
+			if (this.autoReconnectAt > 0L) {
+				long secs = (this.autoReconnectAt - Minecraft.getSystemTime() + 999L) / 1000L;
+				this.drawCenteredString(this.fontRenderer, "Reconnecting in " + Math.max(secs, 0L) + "s (attempt " + (autoReconnectAttempts + 1) + "/" + MAX_AUTO_RECONNECTS + ")",
+						this.width / 2, var4 + 12, 0xFFFF55);
+			} else if (this.reconnectServer != null && this.connectionLost && this.mc.gameSettings.autoReconnect) {
+				this.drawCenteredString(this.fontRenderer, "Gave up reconnecting automatically", this.width / 2, var4 + 12, 0xAAAAAA);
 			}
 		}
 

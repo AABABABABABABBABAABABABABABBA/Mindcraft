@@ -68,6 +68,11 @@ public class EntityPlayerSP extends EntityPlayer {
 	 * For example, zombies and skeletons use this to react to sunlight and start to
 	 * burn.
 	 */
+	private boolean sprintKeyWasDown = false;
+
+	/** true while Toggle Sprint is on and the sprint key was tapped */
+	public boolean sprintToggled = false;
+
 	public void onLivingUpdate() {
 		if (this.sprintingTicksLeft > 0) {
 			--this.sprintingTicksLeft;
@@ -160,6 +165,21 @@ public class EntityPlayerSP extends EntityPlayer {
 
 			if (this.isSneaking()) {
 				this.sprintToggleTimer = 0;
+			}
+
+			// sprint key (R by default): hold to sprint, or press once with Toggle Sprint on
+			boolean sprintKey = this.mc.currentScreen == null && this.mc.gameSettings.keyBindSprint.pressed;
+			if (this.mc.gameSettings.toggleSprint) {
+				if (sprintKey && !this.sprintKeyWasDown) {
+					this.sprintToggled = !this.sprintToggled;
+				}
+			} else {
+				this.sprintToggled = false;
+			}
+			this.sprintKeyWasDown = sprintKey;
+
+			if ((sprintKey || this.sprintToggled) && !this.isSprinting() && this.movementInput.moveForward >= var2 && var4 && !this.isUsingItem() && !this.isSneaking() && !this.isPotionActive(Potion.blindness)) {
+				this.setSprinting(true);
 			}
 
 			if (this.isSprinting() && (this.movementInput.moveForward < var2 || this.isCollidedHorizontally || !var4)) {
