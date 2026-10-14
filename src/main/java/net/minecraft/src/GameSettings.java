@@ -684,7 +684,7 @@ public class GameSettings {
 	}
 
 	/**
-	 * Performance presets for the Mindcraft settings screen,
+	 * Performance presets for the Heisenberg settings screen,
 	 * 0 = potato (weak chromebooks), 1 = balanced, 2 = quality
 	 */
 	public void applyPerformancePreset(int preset) {

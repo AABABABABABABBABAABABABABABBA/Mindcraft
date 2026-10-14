@@ -1,0 +1,12 @@
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/assets.epk
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+/classes.js
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400
+
+/classes_server.js
+  Cache-Control: public, max-age=300, stale-while-revalidate=86400

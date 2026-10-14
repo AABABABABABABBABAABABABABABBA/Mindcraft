@@ -97,7 +97,7 @@ voice.warning3=fallback, which will greatly impact the audio quality
 
 voice.unsupportedWarning1=Voice Warning
 voice.unsupportedWarning2=Your network's firewall may not support
-voice.unsupportedWarning3=eaglercraft's voice chat.
+voice.unsupportedWarning3=Heisenberg's voice chat.
 voice.unsupportedWarning4=If your game doesn't work it's your issue
 voice.unsupportedWarning5=to solve, not ayunami2000's or lax1dude's.
 voice.unsupportedWarning6=Don't ask them to 'fix' it for you because
@@ -108,7 +108,7 @@ voice.unsupportedWarning10=Continue
 voice.unsupportedWarning11=Cancel
 
 voice.ipGrabWarning1=IP Logger Warning
-voice.ipGrabWarning2=Using Eaglercraft voice chat may allow your
+voice.ipGrabWarning2=Using Heisenberg voice chat may allow your
 voice.ipGrabWarning3=IP address to be logged by other players
 voice.ipGrabWarning4=also using voice on the server.
 voice.ipGrabWarning5=This issue will not be fixed, it is an
@@ -118,7 +118,7 @@ voice.ipGrabWarning8=the other player uses a hacked web browser
 voice.ipGrabWarning9=or has Wireshark to capture the voice
 voice.ipGrabWarning10=packets, as there exists no real javascript
 voice.ipGrabWarning11=method to log IPs using a normal skidded
-voice.ipGrabWarning12=eaglercraft hacked client.
+voice.ipGrabWarning12=Heisenberg hacked client.
 
 selectWorld.title=Select World
 selectWorld.empty=empty
@@ -165,9 +165,9 @@ selectWorld.backup.clearPlayerData.warning2=All players in '$world$' will lose t
 
 selectWorld.create.title=What do you wanna do?
 selectWorld.create.create=Create New World
-selectWorld.create.create.tooltip=Make a new world for eaglercraft
+selectWorld.create.create.tooltip=Make a new world for Heisenberg
 selectWorld.create.import=Load EPK File
-selectWorld.create.import.tooltip=Load an Eaglercraft .epk world file
+selectWorld.create.import.tooltip=Load a Heisenberg .epk world file
 selectWorld.create.vanilla=Import Vanilla World
 selectWorld.create.vanilla.tooltip=Load a vanilla minecraft 1.5.2 world
 

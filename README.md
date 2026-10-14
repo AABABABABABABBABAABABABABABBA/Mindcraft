@@ -1,6 +1,6 @@
-# Mindcraft — optimized Eaglercraft fork
+# Heisenberg
 
-This is a fork of [lDEVinux/eaglercraft](https://github.com/lDEVinux/eaglercraft) (Minecraft 1.5.2 in the browser) tuned for smoother FPS and faster multiplayer. Everything below this section is the original upstream README.
+Heisenberg is a fork of [Eaglercraft](https://github.com/lDEVinux/eaglercraft) (Minecraft 1.5.2 in the browser) tuned for smoother FPS and faster multiplayer, with extra settings and gameplay features. All credit for the underlying port goes to lax1dude, ayunami2000 and the Eaglercraft contributors. Everything below this section is the original upstream README.
 
 ### What's different
 
@@ -20,7 +20,7 @@ This is a fork of [lDEVinux/eaglercraft](https://github.com/lDEVinux/eaglercraft
 
 ### New features
 
-Open **Options → Mindcraft Settings...** to change these.
+Open **Options → Heisenberg Settings...** to change these.
 
 **Performance**
 - **Render Scale** (25%–100%): renders the 3D view at lower resolution and stretches it to fit. 50% is about 4x fewer pixels, which helps a lot on Chromebooks.
@@ -39,6 +39,34 @@ Open **Options → Mindcraft Settings...** to change these.
 - **Fullbright**: see in caves and at night.
 - **Keystrokes + CPS** overlay: shows WASD, mouse buttons with clicks per second, and space.
 - Coordinates now show the direction you're facing.
+
+### Deploy to Cloudflare Workers
+
+The `cloudflare/` folder is a Worker that serves the web client (`stable-download/web`) as static assets and proxies `/ws` to your multiplayer server. Browsers on an `https://` site can only open secure `wss://` connections, but the bundled server only speaks plain `ws://`, so the Worker bridges the two.
+
+**Automatic (GitHub Actions):** add these in the repo's **Settings → Secrets and variables → Actions**:
+
+| Name | Type | Value |
+|---|---|---|
+| `CLOUDFLARE_API_TOKEN` | Secret | API token with the "Edit Cloudflare Workers" template |
+| `CLOUDFLARE_ACCOUNT_ID` | Secret | Your account ID (Workers & Pages overview page) |
+| `MC_SERVER` | Variable (optional) | Your server's websocket address, e.g. `ws://mc.example.com:25565` |
+
+Every push that changes `stable-download/web` or `cloudflare/` then deploys automatically. You can also run the workflow by hand from the Actions tab.
+
+**Manual:**
+
+```sh
+cd cloudflare
+npm ci
+npx wrangler login
+npx wrangler deploy --var MC_SERVER:ws://mc.example.com:25565
+```
+
+Notes on the multiplayer proxy:
+- `MC_SERVER` must be a hostname, not a bare IP address. Workers can't connect to raw IPs.
+- In `stable-download/java/bungee_command/config.yml`, set `forward_ip: true` so the server sees each player's real IP (the Worker sends it in `X-Real-IP`). Otherwise every player shares Cloudflare's IP and they trip the login rate limit together. Only do this when players reach the server through the Worker, because the header could be spoofed by someone connecting directly.
+- The deployed client lists "Heisenberg Server" (the `/ws` proxy) first in Multiplayer.
 
 ### Quick start
 

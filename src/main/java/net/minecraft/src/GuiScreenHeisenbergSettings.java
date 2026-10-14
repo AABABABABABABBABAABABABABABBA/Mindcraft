@@ -4,9 +4,9 @@ import net.lax1dude.eaglercraft.EaglerAdapter;
 import net.minecraft.client.Minecraft;
 
 /**
- * Settings added by the Mindcraft fork: performance, HUD and gameplay toggles
+ * Settings added by the Heisenberg fork: performance, HUD and gameplay toggles
  */
-public class GuiScreenMindcraftSettings extends GuiScreen {
+public class GuiScreenHeisenbergSettings extends GuiScreen {
 
 	private static final String[] HUD_MODES = new String[] { "Off", "FPS + Ping", "Detailed" };
 	private static final String[] PRESETS = new String[] { "Potato", "Balanced", "Quality" };
@@ -16,7 +16,7 @@ public class GuiScreenMindcraftSettings extends GuiScreen {
 	private String presetMessage = null;
 	private long presetMessageTime = 0L;
 
-	public GuiScreenMindcraftSettings(GuiScreen parent, GameSettings settings) {
+	public GuiScreenHeisenbergSettings(GuiScreen parent, GameSettings settings) {
 		this.parent = parent;
 		this.settings = settings;
 	}
@@ -173,7 +173,7 @@ public class GuiScreenMindcraftSettings extends GuiScreen {
 
 	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
 		this.drawDefaultBackground();
-		this.drawCenteredString(this.fontRenderer, "Mindcraft Settings", this.width / 2, 15, 16777215);
+		this.drawCenteredString(this.fontRenderer, "Heisenberg Settings", this.width / 2, 15, 16777215);
 		super.drawScreen(mouseX, mouseY, partialTicks);
 		int y = this.height / 6 + 133;
 		if (presetMessage != null && Minecraft.getSystemTime() - presetMessageTime < 3000L) {

@@ -156,13 +156,13 @@ public class GuiDisconnected extends GuiScreen {
 			this.drawCenteredString(this.fontRenderer, "Authentication Required", this.width / 3, this.height / 4 - 30, 0xDD5555);
 			EaglerAdapter.glPopMatrix();
 			this.drawCenteredString(this.fontRenderer, "This server requires a paid Minecraft account to join", this.width / 2, this.height / 2 - 55, 0xDDDD44);
-			this.drawCenteredString(this.fontRenderer, "You are running Eaglercraft " + EnumChatFormatting.GRAY + ConfigConstants.version + EnumChatFormatting.RESET + " which does not", this.width / 2, this.height / 2 - 35, 0x44BB44);
+			this.drawCenteredString(this.fontRenderer, "You are running Heisenberg " + EnumChatFormatting.GRAY + ConfigConstants.version + EnumChatFormatting.RESET + " which does not", this.width / 2, this.height / 2 - 35, 0x44BB44);
 			this.drawCenteredString(this.fontRenderer, "support Xbox Live sign-in, so this server is inaccessable", this.width / 2, this.height / 2 - 23, 0x44BB44);
 
 			EaglerAdapter.glPushMatrix();
 			EaglerAdapter.glScalef(1.0f, 1.0f, 1.0f);
 			this.drawCenteredString(this.fontRenderer, "Please contact the owner of this site to update, or", this.width / 2, this.height / 2 - 3, 0x666666);
-			this.drawCenteredString(this.fontRenderer, "if you want to continue playing Eaglercraft without a", this.width / 2, this.height / 2 + 5, 0x666666);
+			this.drawCenteredString(this.fontRenderer, "if you want to continue playing Heisenberg without a", this.width / 2, this.height / 2 + 5, 0x666666);
 			this.drawCenteredString(this.fontRenderer, "real Minecraft account then please choose to play on", this.width / 2, this.height / 2 + 14, 0x666666);
 			this.drawCenteredString(this.fontRenderer, "an older server that does still you to play for free", this.width / 2, this.height / 2 + 23, 0x666666);
 			EaglerAdapter.glPopMatrix();

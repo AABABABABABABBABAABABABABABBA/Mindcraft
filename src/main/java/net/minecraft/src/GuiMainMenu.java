@@ -86,7 +86,7 @@ public class GuiMainMenu extends GuiScreen {
 				this.splashText = "missingno";
 			}
 		}
-		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("eaglercraft javascript runtime") : ("eaglercraft desktop runtime");
+		this.field_92025_p = EaglerAdapter._wisWebGL() ? ("heisenberg javascript runtime") : ("heisenberg desktop runtime");
 		this.start = System.currentTimeMillis();
 		this.start += this.start % 10000l;
 		this.ackLines = new ArrayList();
@@ -211,7 +211,7 @@ public class GuiMainMenu extends GuiScreen {
 		if(!showAck) {
 			super.mouseClicked(par1, par2, par3);
 			if (par3 == 0) {
-				int w = this.fontRenderer.getStringWidth("eaglercraft readme.txt") * 3 / 4;
+				int w = this.fontRenderer.getStringWidth("heisenberg readme.txt") * 3 / 4;
 				if(par1 >= (this.width - w - 4) && par1 <= this.width && par2 >= 0 && par2 <= 9) {
 					showAck = true;
 					return;
@@ -472,7 +472,7 @@ public class GuiMainMenu extends GuiScreen {
 		}
 	}
 
-	private static final TextureLocation mclogo = new TextureLocation("/title/mclogo.png");
+	private static final TextureLocation mclogo = new TextureLocation("/title/heisenberg.png");
 	private static final TextureLocation eag = new TextureLocation("/title/eag.png");
 	private static final TextureLocation ackbk = new TextureLocation("/gui/demo_bg.png");
 	private static final TextureLocation beaconx = new TextureLocation("/gui/beacon.png");
@@ -548,7 +548,7 @@ public class GuiMainMenu extends GuiScreen {
 		EaglerAdapter.glDisable(EaglerAdapter.GL_BLEND);
 		EaglerAdapter.glPopMatrix();
 		*/
-		var10 = "eaglercraft readme.txt";
+		var10 = "heisenberg readme.txt";
 		int w = this.fontRenderer.getStringWidth(var10) * 3 / 4;
 		if(!showAck && par1 >= (this.width - w - 4) && par1 <= this.width && par2 >= 0 && par2 <= 9) {
 			drawRect((this.width - w - 4), 0, this.width, 9, 0x55000099);

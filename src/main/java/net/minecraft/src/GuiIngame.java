@@ -20,7 +20,7 @@ public class GuiIngame extends Gui {
 
 	/** ChatGUI instance that retains all previous chat data */
 	private final GuiNewChat persistantChatGUI;
-	private final GuiMindcraftHud mindcraftHud = new GuiMindcraftHud();
+	private final GuiHeisenbergHud heisenbergHud = new GuiHeisenbergHud();
 	private int updateCounter = 0;
 
 	/** The string specifying which record music is playing */
@@ -410,7 +410,7 @@ public class GuiIngame extends Gui {
 		this.mc.debug = "" + Minecraft.debugFPS + " fps, " + Minecraft.debugChunkUpdates + " chunk updates";
 
 		if (this.mc.gameSettings.showKeystrokes && !this.mc.gameSettings.showDebugInfo) {
-			this.mindcraftHud.drawKeystrokes(this.mc, var8, var6, var7);
+			this.heisenbergHud.drawKeystrokes(this.mc, var8, var6, var7);
 		}
 
 		if (this.mc.gameSettings.showDebugInfo) {
@@ -485,7 +485,7 @@ public class GuiIngame extends Gui {
 		}else {
 			EaglerAdapter.glPushMatrix();
 			EaglerAdapter.glScalef(0.75f, 0.75f, 0.75f);
-			GuiMindcraftHud.drawCompactInfo(this.mc, var8);
+			GuiHeisenbergHud.drawCompactInfo(this.mc, var8);
 			
 			if(IntegratedServer.isWorldRunning()) {
 				String strr = "Playing Singleplayer";
@@ -624,7 +624,7 @@ public class GuiIngame extends Gui {
 					this.zLevel -= 100.0F;
 
 					if (this.mc.gameSettings.showPingNumbers && var48.responseTime >= 0 && var42 == null) {
-						String pingStr = GuiMindcraftHud.pingColor(var48.responseTime) + var48.responseTime + "ms";
+						String pingStr = GuiHeisenbergHud.pingColor(var48.responseTime) + var48.responseTime + "ms";
 						int pingX = var47 + var17 - 14 - var8.getStringWidth(pingStr);
 						if (pingX > var47 + var8.getStringWidth(var51) + 4) {
 							var8.drawStringWithShadow(pingStr, pingX, var22, 16777215);

@@ -22,7 +22,7 @@ import net.lax1dude.eaglercraft.adapter.Tessellator;
 import net.lax1dude.eaglercraft.glemu.FixedFunctionShader;
 import net.minecraft.src.AchievementList;
 import net.minecraft.src.AxisAlignedBB;
-import net.minecraft.src.GuiMindcraftHud;
+import net.minecraft.src.GuiHeisenbergHud;
 import net.minecraft.src.Block;
 import net.minecraft.src.ChatAllowedCharacters;
 import net.minecraft.src.ColorizerFoliage;
@@ -338,7 +338,7 @@ public class Minecraft implements Runnable {
 		GuiScreen scr;
 		
 		if(s != null) {
-			scr = new GuiScreenEditProfile(new GuiConnecting(new GuiMainMenu(), this, new ServerData("Eaglercraft Server", s, false)));
+			scr = new GuiScreenEditProfile(new GuiConnecting(new GuiMainMenu(), this, new ServerData("Heisenberg Server", s, false)));
 		}else {
 			scr = new GuiScreenEditProfile(new GuiMainMenu());
 		}
@@ -1220,7 +1220,7 @@ public class Minecraft implements Runnable {
 				if (EaglerAdapter.mouseGetEventButtonState()) {
 					KeyBinding.onTick(EaglerAdapter.mouseGetEventButton() - 100);
 					if (this.currentScreen == null) {
-						GuiMindcraftHud.recordClick(EaglerAdapter.mouseGetEventButton());
+						GuiHeisenbergHud.recordClick(EaglerAdapter.mouseGetEventButton());
 					}
 				}
 

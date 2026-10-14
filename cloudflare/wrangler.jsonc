@@ -1,0 +1,22 @@
+{
+  // Heisenberg on Cloudflare Workers: serves the web client as static assets and
+  // proxies /ws to your multiplayer server so HTTPS players can connect over wss://
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "heisenberg",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "../stable-download/web",
+    "binding": "ASSETS",
+    "run_worker_first": ["/ws", "/ws/*"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    // Your EaglercraftBungee websocket listener, e.g. "ws://mc.example.com:25565".
+    // Must be a hostname, Workers can't connect to bare IP addresses.
+    // Leave empty to disable the multiplayer proxy.
+    "MC_SERVER": ""
+  }
+}

@@ -6,10 +6,10 @@ import net.lax1dude.eaglercraft.EaglerAdapter;
 import net.minecraft.client.Minecraft;
 
 /**
- * Extra in-game HUD elements added by Mindcraft: the simple FPS/ping line,
+ * Extra in-game HUD elements added by Heisenberg: the simple FPS/ping line,
  * facing direction and the keystrokes + CPS overlay
  */
-public class GuiMindcraftHud extends Gui {
+public class GuiHeisenbergHud extends Gui {
 
 	private static final int CLICK_HISTORY = 64;
 	private static final long[] leftClicks = new long[CLICK_HISTORY];

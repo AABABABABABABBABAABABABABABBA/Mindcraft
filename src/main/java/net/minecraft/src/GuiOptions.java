@@ -59,7 +59,7 @@ public class GuiOptions extends GuiScreen {
 		this.buttonList.add(new GuiButton(102, this.width / 2 - 152, this.height / 6 + 120 - 6, 150, 20, var1.translateKey("options.language")));
 		this.buttonList.add(new GuiButton(103, this.width / 2 + 2, this.height / 6 + 120 - 6, 150, 20, var1.translateKey("options.multiplayer.title")));
 		this.buttonList.add(b = new GuiButton(105, this.width / 2 - 152, this.height / 6 + 144 - 6, 150, 20, var1.translateKey("options.texture.pack")));
-		this.buttonList.add(new GuiButton(106, this.width / 2 + 2, this.height / 6 + 144 - 6, 150, 20, "Mindcraft Settings..."));
+		this.buttonList.add(new GuiButton(106, this.width / 2 + 2, this.height / 6 + 144 - 6, 150, 20, "Heisenberg Settings..."));
 		this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, var1.translateKey("gui.done")));
 		b.enabled = false;
 
@@ -98,7 +98,7 @@ public class GuiOptions extends GuiScreen {
 
 			if (par1GuiButton.id == 106) {
 				this.mc.gameSettings.saveOptions();
-				this.mc.displayGuiScreen(new GuiScreenMindcraftSettings(this, this.options));
+				this.mc.displayGuiScreen(new GuiScreenHeisenbergSettings(this, this.options));
 			}
 
 			if (par1GuiButton.id == 200) {

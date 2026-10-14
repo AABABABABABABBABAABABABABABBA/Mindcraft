@@ -116,7 +116,7 @@ public class GuiIngameMenu extends GuiScreen {
 			EaglerAdapter.glPopMatrix();
 		}
 
-		drawString(fontRenderer, "Eaglercraft: " + ConfigConstants.version, 6, 27, 0x999999);
+		drawString(fontRenderer, "Heisenberg: " + ConfigConstants.version, 6, 27, 0x999999);
 		
 		if(IntegratedServerLAN.isLANOpen()) {
 			String str = var1.translateKey("lanServer.pauseMenu0");
