@@ -24,7 +24,7 @@ const relayId = Math.floor(Math.random() * 3);
 window.eaglercraftOpts = {
 container: "game_frame", assetsURI: "assets.epk", serverWorkerURI: "worker_bootstrap.js", worldsFolder: "MAIN",
 servers: [
-	{ serverName: "placeholder", serverAddress: "address here", hideAddress: false }
+	{ serverName: "Local Server", serverAddress: "localhost:25565", hideAddress: false }
 ],
 relays: [
 	{ addr: "wss://relay.deev.is/", name: "lax1dude relay #1", primary: relayId == 0 },
@@ -40,7 +40,7 @@ var q = window.location.search;
 if(typeof q === 'string' && q.startsWith("?")) {
 	q = new URLSearchParams(q);
 	var s = q.get("server");
-	if(s) window.minecraftOpts.push(s);
+	if(s) window.eaglercraftOpts.joinServer = s;
 }
 })();
 main();

@@ -33,3 +33,4 @@ zip-generator/out
 zip-generator/src/main/java/META-INF
 *.iml
 crash_report_override.txt
+tools/.teavm

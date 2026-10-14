@@ -1260,6 +1260,8 @@ public class RenderGlobal implements IWorldAccess {
 	/**
 	 * Updates some of the renderers sorted by distance from the player
 	 */
+	private static final long CHUNK_UPDATE_BUDGET_NANOS = 2500000l;
+
 	public boolean updateRenderers(EntityLiving par1EntityLiving, boolean par2) {
 		byte var3 = 2;
 		RenderSorter var4 = new RenderSorter(par1EntityLiving);
@@ -1302,9 +1304,14 @@ public class RenderGlobal implements IWorldAccess {
 				Collections.sort(var6, var4);
 			}
 
+			// Rebuild the nearest chunks until the frame's time budget is used up instead
+			// of a fixed count, a single heavy chunk no longer stalls the frame and idle
+			// frames still load terrain quickly. The "Chunk Updates" option scales the budget.
+			long deadline = System.nanoTime() + CHUNK_UPDATE_BUDGET_NANOS * (mc.gameSettings.chunkUpdatePerFrame + 1);
+			int maxUpdates = (mc.gameSettings.chunkUpdatePerFrame + 1) * 4;
 			for (var9 = var6.size() - 1; var9 >= 0; --var9) {
 				var10 = (WorldRenderer) var6.get(var9);
-				if(updates >= mc.gameSettings.chunkUpdatePerFrame + 1) { // make configurable
+				if(updates > 0 && (updates >= maxUpdates || System.nanoTime() > deadline)) {
 					this.worldRenderersToUpdate.add(var10);
 					++dropped;
 				}else {

@@ -1,3 +1,44 @@
+# Mindcraft — optimized Eaglercraft fork
+
+This is a fork of [lDEVinux/eaglercraft](https://github.com/lDEVinux/eaglercraft) (Minecraft 1.5.2 in the browser) tuned for smoother FPS and faster multiplayer. Everything below this section is the original upstream README.
+
+### What's different
+
+**Smoother rendering**
+- The game renders straight into the visible canvas. Upstream rendered into a hidden canvas and copied every frame onto a second 2D canvas, which costs a full-screen copy each frame.
+- Frames are paced with `requestAnimationFrame` so they line up with your monitor's refresh rate. Upstream yielded with `Thread.sleep(1)`, a clamped `setTimeout` that made frame times uneven. A backup timer keeps the game ticking in background tabs so you don't get kicked from servers.
+- The "Max Framerate" video setting works again: Balanced caps at 90 FPS and Power Saver at 35 FPS.
+- Chunk rebuilds use a time budget instead of a fixed count per frame, so loading terrain no longer causes big frame spikes. The "Chunk Updates" setting scales the budget.
+
+**Faster multiplayer**
+- Incoming packets are copied from WebSocket/WebRTC buffers in one native call instead of byte by byte.
+- Packet decoding reads in bulk; upstream read big chunk packets one byte at a time.
+- Packet processing has a per-tick time budget, so a burst of chunk data spreads over a few ticks instead of freezing a frame. If too much data piles up (more than 2 MB), it skips the budget and catches up.
+- LAN-world packet reassembly takes linear time; upstream recopied the whole packet for every fragment.
+- The bundled server's `view-distance` is lowered from 10 to 6, so joins send about 2.6x less chunk data.
+- Fixed the `?server=` join link in the downloadable `index.html`. It crashed on startup.
+
+### Quick start
+
+**Play:** host the `stable-download/web` folder (or `javascript/`) on any HTTP server and open it in a browser.
+
+**Host a multiplayer server** (needs Java 8+):
+
+```sh
+stable-download/java/start_multiplayer_server.sh     # Windows: start_multiplayer_server.bat
+```
+
+Friends then join `ws://<your-ip>:25565` from the Multiplayer screen, or you can send them a direct link: `https://<your-client-site>/?server=ws://<your-ip>:25565`. LAN worlds through relays (Pause → Open to LAN) still work as described below.
+
+**Rebuild the client** after changing Java code (needs any JDK 8+; downloads TeaVM on first run):
+
+```sh
+tools/build-client.sh        # writes javascript/classes.js
+./ZipStableDownload.sh       # optional: refreshes stable-download/ (web build, offline HTML, zips)
+```
+
+---
+
 # This repository will be deleted imminently
 
 ### Create a fresh fork ASAP to preserve it, you MUST fork a 100% fresh copy in order for the repository to be considered genuine

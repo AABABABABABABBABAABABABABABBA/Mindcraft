@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import org.teavm.interop.Async;
 import org.teavm.interop.AsyncCallback;
 import org.teavm.jso.JSBody;
+import org.teavm.jso.JSByRef;
 import org.teavm.jso.JSFunctor;
 import org.teavm.jso.JSObject;
 import org.teavm.jso.ajax.ReadyStateChangeHandler;
@@ -57,6 +58,7 @@ import org.teavm.jso.media.MediaError;
 import org.teavm.jso.typedarrays.ArrayBuffer;
 import org.teavm.jso.typedarrays.DataView;
 import org.teavm.jso.typedarrays.Float32Array;
+import org.teavm.jso.typedarrays.Int8Array;
 import org.teavm.jso.typedarrays.Int32Array;
 import org.teavm.jso.typedarrays.Uint8Array;
 import org.teavm.jso.typedarrays.Uint8ClampedArray;
@@ -176,11 +178,7 @@ public class EaglerAdapterImpl2 {
 			@Override
 			public void stateChanged() {
 				if(request.getReadyState() == XMLHttpRequest.DONE) {
-					Uint8Array bl = Uint8Array.create((ArrayBuffer)request.getResponse());
-					loadedPackage = new byte[bl.getByteLength()];
-					for(int i = 0; i < loadedPackage.length; ++i) {
-						loadedPackage[i] = (byte) bl.get(i);
-					}
+					loadedPackage = arrayBufferToBytes((ArrayBuffer)request.getResponse());
 					cb.complete("yee");
 				}
 			}
@@ -203,12 +201,7 @@ public class EaglerAdapterImpl2 {
 			@Override
 			public void stateChanged() {
 				if(request.getReadyState() == XMLHttpRequest.DONE) {
-					Uint8Array bl = Uint8Array.create((ArrayBuffer)request.getResponse());
-					byte[] res = new byte[bl.getByteLength()];
-					for(int i = 0; i < res.length; ++i) {
-						res[i] = (byte) bl.get(i);
-					}
-					cb.complete(res);
+					cb.complete(arrayBufferToBytes((ArrayBuffer)request.getResponse()));
 				}
 			}
 		});
@@ -217,6 +210,19 @@ public class EaglerAdapterImpl2 {
 
 	@JSBody(params = { "v", "s" }, script = "window[v] = s;")
 	public static native void setDebugVar(String v, String s);
+
+	@JSBody(params = { "dst", "src" }, script = "dst.set(src);")
+	private static native void copyIntoByteArray(@JSByRef byte[] dst, Int8Array src);
+
+	/**
+	 * Copies an ArrayBuffer into a new java byte array in one native call,
+	 * instead of crossing the JS boundary once per byte
+	 */
+	public static final byte[] arrayBufferToBytes(ArrayBuffer buf) {
+		byte[] ret = new byte[buf.getByteLength()];
+		copyIntoByteArray(ret, Int8Array.create(buf));
+		return ret;
+	}
 	
 	@JSBody(params = { }, script = "if(window.navigator.userActivation){return window.navigator.userActivation.hasBeenActive;}else{return false;}")
 	public static native boolean hasBeenActive();
@@ -224,7 +230,6 @@ public class EaglerAdapterImpl2 {
 	public static HTMLDocument doc = null;
 	public static HTMLElement parent = null;
 	public static HTMLCanvasElement canvas = null;
-	public static CanvasRenderingContext2D frameBuffer = null;
 	public static HTMLCanvasElement renderingCanvas = null;
 	public static WebGL2RenderingContext webgl = null;
 	public static Window win = null;
@@ -290,11 +295,10 @@ public class EaglerAdapterImpl2 {
 			throw new RuntimeException("Mouse cursor lock is not available on this device!");
 		}
 		SelfDefence.init(canvas);
-		renderingCanvas = (HTMLCanvasElement)doc.createElement("canvas");
-		renderingCanvas.setWidth(sw);
-		renderingCanvas.setHeight(sh);
-		frameBuffer = (CanvasRenderingContext2D) canvas.getContext("2d");
-		webgl = (WebGL2RenderingContext) renderingCanvas.getContext("webgl2", youEagler());
+		// render straight into the visible canvas, the old offscreen canvas + 2D
+		// drawImage() blit cost a full-screen copy every single frame
+		renderingCanvas = canvas;
+		webgl = (WebGL2RenderingContext) canvas.getContext("webgl2", youEagler());
 		if(webgl == null) {
 			Client.showIncompatibleScreen("WebGL 2.0 is not supported on this device!");
 			throw new RuntimeException("WebGL 2.0 is not supported in your browser ("+getNavString("userAgent")+")");
@@ -1690,30 +1694,64 @@ public class EaglerAdapterImpl2 {
 	@JSBody(params = { "obj" }, script = "if(obj.commit) obj.commit();")
 	private static native int commitContext(JSObject obj);
 	
+	@JSFunctor
+	private static interface FrameCallback extends JSObject {
+		void call();
+	}
+
+	/*
+	 * Yields to the browser so the frame we just rendered gets composited.
+	 * requestAnimationFrame lines frames up with the monitor refresh, unlike
+	 * the old Thread.sleep(1) which became a jittery 4ms+ clamped setTimeout.
+	 * Hidden tabs never fire rAF, so a backup timer keeps the game ticking
+	 * (and answering server keepalives) while the tab is in the background.
+	 */
+	@JSBody(params = { "cb" }, script =
+			"var done = false; var t = 0; var r = 0;" +
+			"var f = function() { if(!done) { done = true; window.clearTimeout(t); window.cancelAnimationFrame(r); cb(); } };" +
+			"t = window.setTimeout(f, document.hidden ? 16 : 100);" +
+			"if(!document.hidden) r = window.requestAnimationFrame(f);")
+	private static native void requestFrame(FrameCallback cb);
+
+	@Async
+	private static native void waitForFrame();
+
+	private static void waitForFrame(final AsyncCallback<Void> cb) {
+		requestFrame(new FrameCallback() {
+			@Override
+			public void call() {
+				cb.complete(null);
+			}
+		});
+	}
+
+	private static int frameCapFps = 0;
+	private static double lastFrameTime = 0.0;
+
+	@JSBody(params = { }, script = "return window.performance.now();")
+	private static native double perfNow();
+
 	public static final void updateDisplay() {
-		//commitContext(webgl);
+		waitForFrame();
+		if(frameCapFps > 0) {
+			// skip refreshes until the frame cap allows another frame, 1ms slack for timer jitter
+			double minFrameTime = 1000.0 / frameCapFps - 1.0;
+			int skipped = 0;
+			while(perfNow() - lastFrameTime < minFrameTime && skipped++ < 8) {
+				waitForFrame();
+			}
+			frameCapFps = 0;
+		}
+		lastFrameTime = perfNow();
+		// resize only after the previous frame is on screen, resizing clears the drawing buffer
 		double r = win.getDevicePixelRatio();
-		int w = parent.getClientWidth();
-		int h = parent.getClientHeight();
-		int w2 = (int)(w * r);
-		int h2 = (int)(h * r);
+		int w2 = (int)(parent.getClientWidth() * r);
+		int h2 = (int)(parent.getClientHeight() * r);
 		if(canvas.getWidth() != w2) {
 			canvas.setWidth(w2);
 		}
 		if(canvas.getHeight() != h2) {
 			canvas.setHeight(h2);
-		}
-		frameBuffer.drawImage(renderingCanvas, 0, 0, w2, h2);
-		if(renderingCanvas.getWidth() != w2) {
-			renderingCanvas.setWidth(w2);
-		}
-		if(renderingCanvas.getHeight() != h2) {
-			renderingCanvas.setHeight(h2);
-		}
-		try {
-			Thread.sleep(1l);
-		} catch (InterruptedException e) {
-			;
 		}
 	}
 	public static final float getContentScaling() {
@@ -1757,7 +1795,8 @@ public class EaglerAdapterImpl2 {
 		
 	}
 	public static final void syncDisplay(int performanceToFps) {
-		
+		// applied by the next updateDisplay(), only caps below the monitor refresh rate have any effect
+		frameCapFps = performanceToFps;
 	}
 	
 	private static final DateFormat dateFormatSS = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
@@ -1885,12 +1924,7 @@ public class EaglerAdapterImpl2 {
 					sock.close();
 					return;
 				}
-				Uint8Array a = Uint8Array.create(evt.getDataAsArray());
-				byte[] b = new byte[a.getByteLength()];
-				for(int i = 0; i < b.length; ++i) {
-					b[i] = (byte) (a.get(i) & 0xFF);
-				}
-				readPackets.add(b);
+				readPackets.add(arrayBufferToBytes(evt.getDataAsArray()));
 			}
 		});
 	}
@@ -1921,11 +1955,11 @@ public class EaglerAdapterImpl2 {
 	}
 	@JSBody(params = { "sock", "buffer" }, script = "sock.send(buffer);")
 	private static native void nativeBinarySend(WebSocket sock, ArrayBuffer buffer);
+	@JSBody(params = { "sock", "buffer" }, script = "sock.send(buffer);")
+	private static native void nativeBinarySendBytes(WebSocket sock, @JSByRef byte[] buffer);
 	public static final void writePacket(byte[] packet) {
 		if(sock != null && !sockIsConnecting) {
-			Uint8Array arr = Uint8Array.create(packet.length);
-			arr.set(packet);
-			nativeBinarySend(sock, arr.getBuffer());
+			nativeBinarySendBytes(sock, packet);
 		}
 	}
 	public static final byte[] readPacket() {
@@ -1980,11 +2014,7 @@ public class EaglerAdapterImpl2 {
 	public static final byte[] getFileChooserResult() {
 		ArrayBuffer b = getFileChooserResult0();
 		if(b == null) return null;
-		Uint8Array array = Uint8Array.create(b);
-		byte[] ret = new byte[array.getByteLength()];
-		for(int i = 0; i < ret.length; ++i) {
-			ret[i] = (byte) array.get(i);
-		}
+		byte[] ret = arrayBufferToBytes(b);
 		return ret;
 	}
 	
@@ -2804,11 +2834,7 @@ public class EaglerAdapterImpl2 {
 					return;
 				}
 				
-				Uint8Array a = Uint8Array.create(buf);
-				byte[] pkt = new byte[a.getLength()];
-				for(int i = 0; i < pkt.length; ++i) {
-					pkt[i] = (byte) a.get(i);
-				}
+				byte[] pkt = arrayBufferToBytes(buf);
 				
 				existingQueue.add(new PKT(channel, pkt));
 			}
@@ -3036,11 +3062,7 @@ public class EaglerAdapterImpl2 {
 								System.err.println("Query response could not be parsed: " + t.toString());
 							}
 						}else {
-							Uint8Array a = Uint8Array.create(evt.getDataAsArray());
-							byte[] b = new byte[a.getByteLength()];
-							for(int i = 0; i < b.length; ++i) {
-								b[i] = (byte) (a.get(i) & 0xFF);
-							}
+							byte[] b = arrayBufferToBytes(evt.getDataAsArray());
 							queryResponsesBytes.add(b);
 						}
 					}
@@ -3238,11 +3260,7 @@ public class EaglerAdapterImpl2 {
 				public void handleEvent(MessageEvent evt) {
 					if(evt.getData() != null && !isString(evt.getData())) {
 						hasRecievedAnyData = true;
-						Uint8Array buf = Uint8Array.create(evt.getDataAsArray());
-						byte[] arr = new byte[buf.getLength()];
-						for(int i = 0; i < arr.length; ++i) {
-							arr[i] = (byte)buf.get(i);
-						}
+						byte[] arr = arrayBufferToBytes(evt.getDataAsArray());
 						if(arr.length == 2 && arr[0] == (byte)0xFC) {
 							long millis = System.currentTimeMillis();
 							if(arr[1] == (byte)0x00 || arr[1] == (byte)0x01) {
@@ -3502,11 +3520,7 @@ public class EaglerAdapterImpl2 {
 				public void handleEvent(MessageEvent evt) {
 					if(evt.getData() != null && !isString(evt.getData())) {
 						hasRecievedAnyData = true;
-						Uint8Array buf = Uint8Array.create(evt.getDataAsArray());
-						byte[] arr = new byte[buf.getLength()];
-						for(int i = 0; i < arr.length; ++i) {
-							arr[i] = (byte)buf.get(i);
-						}
+						byte[] arr = arrayBufferToBytes(evt.getDataAsArray());
 						if(arr.length == 2 && arr[0] == (byte)0xFC) {
 							long millis = System.currentTimeMillis();
 							if(arr[1] == (byte)0x00 || arr[1] == (byte)0x01) {
@@ -3721,11 +3735,7 @@ public class EaglerAdapterImpl2 {
 				public void handleEvent(MessageEvent evt) {
 					if(evt.getData() != null && !isString(evt.getData())) {
 						hasRecievedAnyData = true;
-						Uint8Array buf = Uint8Array.create(evt.getDataAsArray());
-						byte[] arr = new byte[buf.getLength()];
-						for(int i = 0; i < arr.length; ++i) {
-							arr[i] = (byte)buf.get(i);
-						}
+						byte[] arr = arrayBufferToBytes(evt.getDataAsArray());
 						try {
 							packets.add(IPacket.readPacket(new DataInputStream(new ByteArrayInputStream(arr))));
 						} catch (IOException e) {
@@ -3979,11 +3989,7 @@ public class EaglerAdapterImpl2 {
 			rtcLANClient.setRemotePacketHandler(new EaglercraftLANClient.RemotePacketHandler() {
 				@Override
 				public void call(ArrayBuffer buffer) {
-					Uint8Array array = Uint8Array.create(buffer);
-					byte[] ret = new byte[array.getByteLength()];
-					for(int i = 0; i < ret.length; ++i) {
-						ret[i] = (byte) array.get(i);
-					}
+					byte[] ret = arrayBufferToBytes(buffer);
 					clientLANPacketBuffer.add(ret);
 				}
 			});
@@ -4089,11 +4095,7 @@ public class EaglerAdapterImpl2 {
 			rtcLANServer.setRemoteClientPacketHandler(new EaglercraftLANServer.PeerPacketHandler() {
 				@Override
 				public void call(String peerId, ArrayBuffer buffer) {
-					Uint8Array array = Uint8Array.create(buffer);
-					byte[] ret = new byte[array.getByteLength()];
-					for(int i = 0; i < ret.length; ++i) {
-						ret[i] = (byte) array.get(i);
-					}
+					byte[] ret = arrayBufferToBytes(buffer);
 					serverLANEventBuffer.add(new LANPeerEvent.LANPeerPacketEvent(peerId, ret));
 				}
 			});

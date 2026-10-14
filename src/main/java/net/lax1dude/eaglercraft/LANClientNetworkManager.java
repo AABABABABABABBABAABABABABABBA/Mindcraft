@@ -244,7 +244,7 @@ public class LANClientNetworkManager implements INetworkManager {
 		// no
 	}
 
-	private byte[] fragmentedPacket = new byte[0];
+	private final ByteArrayOutputStream fragmentedPacket = new ByteArrayOutputStream();
 
 	@Override
 	public void processReadPackets() {
@@ -264,16 +264,19 @@ public class LANClientNetworkManager implements INetworkManager {
 			while((data = EaglerAdapter.clientLANReadPacket()) != null) {
 				byte[] fullData;
 
+				// append fragments to a growable buffer, the old version reallocated and
+				// recopied the whole packet for every fragment (quadratic on big chunks)
 				if (data[0] == 0) {
-					fullData = new byte[fragmentedPacket.length + data.length - 1];
-					System.arraycopy(fragmentedPacket, 0, fullData, 0, fragmentedPacket.length);
-					System.arraycopy(data, 1, fullData, fragmentedPacket.length, data.length - 1);
-					fragmentedPacket = new byte[0];
+					if(fragmentedPacket.size() == 0) {
+						fullData = new byte[data.length - 1];
+						System.arraycopy(data, 1, fullData, 0, data.length - 1);
+					}else {
+						fragmentedPacket.write(data, 1, data.length - 1);
+						fullData = fragmentedPacket.toByteArray();
+						fragmentedPacket.reset();
+					}
 				} else if (data[0] == 1) {
-					fullData = new byte[fragmentedPacket.length + data.length - 1];
-					System.arraycopy(fragmentedPacket, 0, fullData, 0, fragmentedPacket.length);
-					System.arraycopy(data, 1, fullData, fragmentedPacket.length, data.length - 1);
-					fragmentedPacket = fullData;
+					fragmentedPacket.write(data, 1, data.length - 1);
 					continue;
 				} else {
 					continue;
