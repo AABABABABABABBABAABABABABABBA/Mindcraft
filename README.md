@@ -42,7 +42,11 @@ Open **Options → Heisenberg Settings...** to change these.
 
 ### Deploy to Cloudflare Workers
 
-The `cloudflare/` folder is a Worker that serves the web client (`stable-download/web`) as static assets and proxies `/ws` to your multiplayer server. Browsers on an `https://` site can only open secure `wss://` connections, but the bundled server only speaks plain `ws://`, so the Worker bridges the two.
+The `cloudflare/` folder is a Worker that does three things:
+
+- Serves the web client (`stable-download/web`) as static assets.
+- **Hosts multiplayer on Cloudflare itself** at `/relay`. This is the LAN world relay, rebuilt as a Durable Object (`cloudflare/src/relay.js`). A player opens their singleplayer world to LAN (pause menu → Open to LAN) and gets a 5-letter code. Friends enter it under Singleplayer → Join LAN World. The relay only introduces the players to each other; game traffic then flows peer to peer over WebRTC, using Cloudflare's STUN server and, optionally, Cloudflare TURN. The deployed client uses this relay by default, so multiplayer works with no server to run.
+- Optionally proxies `/ws` to a dedicated server you run yourself. Browsers on an `https://` site can only open secure `wss://` connections, but the bundled server only speaks plain `ws://`, so the Worker bridges the two.
 
 **Automatic (GitHub Actions):** add these in the repo's **Settings → Secrets and variables → Actions**:
 
@@ -51,6 +55,8 @@ The `cloudflare/` folder is a Worker that serves the web client (`stable-downloa
 | `CLOUDFLARE_API_TOKEN` | Secret | API token with the "Edit Cloudflare Workers" template |
 | `CLOUDFLARE_ACCOUNT_ID` | Secret | Your account ID (Workers & Pages overview page) |
 | `MC_SERVER` | Variable (optional) | Your server's websocket address, e.g. `ws://mc.example.com:25565` |
+| `TURN_KEY_ID` | Variable (optional) | Cloudflare TURN key ID (dashboard → Realtime → TURN) |
+| `TURN_KEY_API_TOKEN` | Secret (optional) | That TURN key's API token |
 
 Every push that changes `stable-download/web` or `cloudflare/` then deploys automatically. You can also run the workflow by hand from the Actions tab.
 
@@ -63,7 +69,11 @@ npx wrangler login
 npx wrangler deploy --var MC_SERVER:ws://mc.example.com:25565
 ```
 
-Notes on the multiplayer proxy:
+About Cloudflare TURN: without it, LAN worlds connect through STUN, which works for most home and mobile networks. Some school and office firewalls block direct peer-to-peer traffic. With the TURN key set, the relay hands out 24-hour Cloudflare TURN credentials, and those players connect through Cloudflare instead. TURN is billed per GB of traffic.
+
+Test the relay against a running worker (`npx wrangler dev` in `cloudflare/`) with `node test/relay-protocol.mjs ws://localhost:8787/relay`.
+
+Notes on the dedicated server proxy:
 - `MC_SERVER` must be a hostname, not a bare IP address. Workers can't connect to raw IPs.
 - In `stable-download/java/bungee_command/config.yml`, set `forward_ip: true` so the server sees each player's real IP (the Worker sends it in `X-Real-IP`). Otherwise every player shares Cloudflare's IP and they trip the login rate limit together. Only do this when players reach the server through the Worker, because the header could be spoofed by someone connecting directly.
 - The deployed client lists "Heisenberg Server" (the `/ws` proxy) first in Multiplayer.

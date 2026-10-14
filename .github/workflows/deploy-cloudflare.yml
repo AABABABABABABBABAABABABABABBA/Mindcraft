@@ -22,6 +22,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       MC_SERVER: ${{ vars.MC_SERVER }}
+      TURN_KEY_ID: ${{ vars.TURN_KEY_ID }}
+      TURN_KEY_API_TOKEN: ${{ secrets.TURN_KEY_API_TOKEN }}
     steps:
       - name: Check for Cloudflare credentials
         if: env.CLOUDFLARE_API_TOKEN == ''
@@ -48,8 +50,12 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: cloudflare
         run: |
-          if [ -n "$MC_SERVER" ]; then
-            npx wrangler deploy --var "MC_SERVER:$MC_SERVER"
-          else
-            npx wrangler deploy
-          fi
+          ARGS=""
+          if [ -n "$MC_SERVER" ]; then ARGS="$ARGS --var MC_SERVER:$MC_SERVER"; fi
+          if [ -n "$TURN_KEY_ID" ]; then ARGS="$ARGS --var TURN_KEY_ID:$TURN_KEY_ID"; fi
+          npx wrangler deploy $ARGS
+
+      - name: Set TURN secret
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.TURN_KEY_API_TOKEN != ''
+        working-directory: cloudflare
+        run: printf '%s' "$TURN_KEY_API_TOKEN" | npx wrangler secret put TURN_KEY_API_TOKEN

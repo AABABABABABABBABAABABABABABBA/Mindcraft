@@ -1,7 +1,11 @@
+export { LanRelay } from "./relay.js";
+
 /**
  * Heisenberg Worker
  *
- * - Everything except /ws is served from the static assets (the web client).
+ * - Everything except /ws and /relay is served from the static assets (the web client).
+ * - /relay is the LAN world relay, a Durable Object (see relay.js). Players host
+ *   worlds in their browser and friends join peer to peer over WebRTC.
  * - /ws proxies WebSocket connections to the multiplayer server in MC_SERVER.
  *   Browsers on an https:// page can only open wss:// sockets, and the bundled
  *   EaglercraftBungee only speaks plain ws://, so the Worker terminates TLS and
@@ -13,6 +17,10 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === "/ws" || url.pathname.startsWith("/ws/")) {
       return proxyWebSocket(request, env);
+    }
+    if (url.pathname === "/relay" || url.pathname.startsWith("/relay/")) {
+      // one global relay instance so every join code is visible to every player
+      return env.LAN_RELAY.get(env.LAN_RELAY.idFromName("global")).fetch(request);
     }
     return env.ASSETS.fetch(request);
   },

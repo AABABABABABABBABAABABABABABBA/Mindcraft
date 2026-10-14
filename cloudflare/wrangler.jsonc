@@ -8,8 +8,13 @@
   "assets": {
     "directory": "../stable-download/web",
     "binding": "ASSETS",
-    "run_worker_first": ["/ws", "/ws/*"]
+    "run_worker_first": ["/ws", "/ws/*", "/relay", "/relay/*"]
   },
+  // LAN world relay (see src/relay.js)
+  "durable_objects": {
+    "bindings": [{ "name": "LAN_RELAY", "class_name": "LanRelay" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LanRelay"] }],
   "observability": {
     "enabled": true
   },
@@ -17,6 +22,10 @@
     // Your EaglercraftBungee websocket listener, e.g. "ws://mc.example.com:25565".
     // Must be a hostname, Workers can't connect to bare IP addresses.
     // Leave empty to disable the multiplayer proxy.
-    "MC_SERVER": ""
+    "MC_SERVER": "",
+    // Optional Cloudflare TURN key id (Realtime > TURN in the dashboard), pair it with the
+    // TURN_KEY_API_TOKEN secret so players behind strict firewalls can join LAN worlds
+    "TURN_KEY_ID": "",
+    "RELAY_COMMENT": "Heisenberg relay on Cloudflare"
   }
 }
