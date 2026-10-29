@@ -2176,7 +2176,9 @@ public abstract class World implements IBlockAccess {
 			var2 = (EntityPlayerMP) this.playerEntities.get(var1);
 			var3 = MathHelper.floor_double(var2.posX / 16.0D);
 			var4 = MathHelper.floor_double(var2.posZ / 16.0D);
-			int var5 = 7;
+			// random block ticks (crops, leaves, fire, ice) only near players, the
+			// vanilla 7 chunk radius is too much for a browser on a slow device
+			int var5 = 4;
 
 			if(var2.renderDistance < var5) {
 				var5 = var2.renderDistance - 1;

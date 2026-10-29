@@ -58,6 +58,9 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
 
 	/** must be between 3>x>15 (strictly between) */
 	public int renderDistance = 4;
+
+	/** view distance the client asked for, renderDistance can be lowered below it by the server's dynamic cap */
+	public int requestedRenderDistance = 4;
 	public int lastRenderDistance = 4;
 	public int chatVisibility = 0;
 	private boolean chatColours = true;
@@ -718,6 +721,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
 	public void clonePlayer(EntityPlayer par1EntityPlayer, boolean par2) {
 		super.clonePlayer(par1EntityPlayer, par2);
 		this.renderDistance = ((EntityPlayerMP)par1EntityPlayer).renderDistance;
+		this.requestedRenderDistance = ((EntityPlayerMP)par1EntityPlayer).requestedRenderDistance;
 		this.lastExperience = -1;
 		this.lastHealth = -1;
 		this.lastFoodLevel = -1;
@@ -827,6 +831,8 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
 				int maxRenderDistance = fard == null ? 10 : (fard.renderDistance > 10 ? 10 : fard.renderDistance);
 				this.renderDistance = var2 > maxRenderDistance ? maxRenderDistance : var2;
 			}
+			this.requestedRenderDistance = this.renderDistance;
+			this.renderDistance = Math.min(this.renderDistance, this.mcServer.getViewDistanceCap());
 			if(this.lastRenderDistance != this.renderDistance) {
 				if(this.mcServer.isSinglePlayer() && this.mcServer.getServerOwner().equals(this.username)) {
 					for(int i = 0; i < this.mcServer.worldServers.length; ++i) {

@@ -145,6 +145,8 @@ public class NetLoginHandler extends NetHandler {
 					int maxRenderDistance = fard == null ? 10 : (fard.renderDistance > 10 ? 10 : fard.renderDistance);
 					var2.renderDistance = this.viewDistance > maxRenderDistance ? maxRenderDistance : this.viewDistance;
 				}
+				var2.requestedRenderDistance = var2.renderDistance;
+				var2.renderDistance = Math.min(var2.renderDistance, this.mcServer.getViewDistanceCap());
 				this.mcServer.getConfigurationManager().initializeConnectionToPlayer(this.myTCPConnection, var2);
 			}else {
 				this.kickUser("Could not construct EntityPlayerMP for '" + var1 + "'");

@@ -19,6 +19,7 @@ import net.minecraft.src.CommandBase;
 import net.minecraft.src.DispenserBehaviors;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.EntityPlayerMP;
+import net.minecraft.src.PlayerManager;
 import net.minecraft.src.EnumGameType;
 import net.minecraft.src.ICommandManager;
 import net.minecraft.src.ICommandSender;
@@ -454,6 +455,8 @@ public abstract class MinecraftServer implements ICommandSender, Runnable {
 		this.lastReceivedSize = Packet.receivedSize;
 		this.theProfiler.endSection();
 		this.theProfiler.endSection();
+
+		this.adaptViewDistance();
 		
 		++tpsCounter;
 		long millis = System.currentTimeMillis();
@@ -466,9 +469,72 @@ public abstract class MinecraftServer implements ICommandSender, Runnable {
 		}
 	}
 	
+	/** largest view distance the server currently allows, see adaptViewDistance */
+	private int viewDistanceCap = 14;
+
+	public int getViewDistanceCap() {
+		return viewDistanceCap;
+	}
+
+	/** average time per tick over the last 100 ticks, in milliseconds */
+	public float getAverageTickMillis() {
+		long total = 0L;
+		for (int i = 0; i < tickTimeArray.length; ++i) {
+			total += tickTimeArray[i];
+		}
+		return (float) (total / tickTimeArray.length) / 1000000.0F;
+	}
+
+	/**
+	 * Dynamic view distance: every 100 ticks, if the average tick takes longer
+	 * than the server can sustain at 20 TPS, load one chunk ring less around
+	 * players (down to 4), and give it back once there's headroom again. Keeps
+	 * the integrated server at full speed on slow devices instead of the whole
+	 * world running in slow motion.
+	 */
+	private void adaptViewDistance() {
+		if (this.tickCounter % 100 != 0 || this.playersOnline.isEmpty()) {
+			return;
+		}
+		float avg = getAverageTickMillis();
+		int maxRequested = 4;
+		for (int i = 0, l = this.playersOnline.size(); i < l; ++i) {
+			maxRequested = Math.max(maxRequested, ((EntityPlayerMP) this.playersOnline.get(i)).requestedRenderDistance);
+		}
+		int cap = Math.min(viewDistanceCap, maxRequested);
+		if (avg > 40.0F && cap > 4) {
+			--cap;
+		} else if (avg < 20.0F && viewDistanceCap < 14) {
+			cap = Math.min(viewDistanceCap + 1, 14);
+		} else {
+			return;
+		}
+		if (cap == viewDistanceCap) {
+			return;
+		}
+		viewDistanceCap = cap;
+		for (int i = 0, l = this.playersOnline.size(); i < l; ++i) {
+			EntityPlayerMP p = (EntityPlayerMP) this.playersOnline.get(i);
+			int target = Math.min(p.requestedRenderDistance, cap);
+			if (target != p.renderDistance) {
+				p.renderDistance = target;
+				if (this.isSinglePlayer() && this.getServerOwner().equals(p.username)) {
+					for (int j = 0; j < this.worldServers.length; ++j) {
+						this.worldServers[j].getEntityTracker().setMainRenderDistance(PlayerManager.getFurthestViewableBlock(target));
+					}
+				}
+				((WorldServer) p.worldObj).getPlayerManager().cycleRenderDistance(p);
+			}
+		}
+	}
+
 	public List<String> getTPSAndChunkBuffer() {
 		ArrayList<String> strs = new ArrayList();
-		strs.add("Ticks/Second: " + tpsCounter + "/20");
+		float mspt = getAverageTickMillis();
+		strs.add("Ticks/Second: " + tpsCounter + "/20 (" + ((int) (mspt * 10.0F) / 10.0F) + " ms)");
+		if (viewDistanceCap < 14) {
+			strs.add("View distance limited to " + viewDistanceCap + " (server busy)");
+		}
 		
 		int c = 0;
 		int oc = 0;

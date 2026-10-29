@@ -44,7 +44,8 @@ public final class SpawnerAnimals {
 				EntityPlayerMP var5 = (EntityPlayerMP) par0WorldServer.playerEntities.get(var4);
 				int var6 = MathHelper.floor_double(var5.posX / 16.0D);
 				var7 = MathHelper.floor_double(var5.posZ / 16.0D);
-				int var8 = 8;
+				// mob spawning radius, smaller than vanilla's 8 so fewer mobs need ticking
+				int var8 = 6;
 
 				if(var5.renderDistance < var8) {
 					var8 = var5.renderDistance;
@@ -55,7 +56,7 @@ public final class SpawnerAnimals {
 				
 				for (int var9 = -var8; var9 <= var8; ++var9) {
 					for (int var10 = -var8; var10 <= var8; ++var10) {
-						boolean var11 = var8 >= 8 && (var9 == -var8 || var9 == var8 || var10 == -var8 || var10 == var8);
+						boolean var11 = var8 >= 6 && (var9 == -var8 || var9 == var8 || var10 == -var8 || var10 == var8);
 						ChunkCoordIntPair var12 = new ChunkCoordIntPair(var9 + var6, var10 + var7);
 
 						if (!var11) {
