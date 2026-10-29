@@ -42,6 +42,29 @@ public class RelayManager {
 			for(int i = 0, l = ConfigConstants.relays.size(); i < l; ++i) {
 				relays.add(new RelayServer(ConfigConstants.relays.get(i)));
 			}
+		}else if(ConfigConstants.relays != null) {
+			// A saved relay list used to hide the site's built-in relays completely, so
+			// players who once saved a list never got a relay added to the site later
+			// (and old public relays go offline). Merge in the missing ones, and if the
+			// site's primary relay was missing, make it the primary.
+			boolean primaryAdded = false;
+			eee: for(int i = 0, l = ConfigConstants.relays.size(); i < l; ++i) {
+				RelayEntry etr = ConfigConstants.relays.get(i);
+				for(int j = 0, m = relays.size(); j < m; ++j) {
+					if(relays.get(j).address.equalsIgnoreCase(etr.address)) {
+						continue eee;
+					}
+				}
+				RelayServer srv = new RelayServer(etr.address, etr.comment, false);
+				if(etr.primary && !primaryAdded) {
+					for(int j = 0, m = relays.size(); j < m; ++j) {
+						relays.get(j).setPrimary(false);
+					}
+					srv.setPrimary(true);
+					primaryAdded = true;
+				}
+				relays.add(srv);
+			}
 		}
 		sort();
 	}

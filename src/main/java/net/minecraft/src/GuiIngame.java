@@ -409,6 +409,10 @@ public class GuiIngame extends Gui {
 		
 		this.mc.debug = "" + Minecraft.debugFPS + " fps, " + Minecraft.debugChunkUpdates + " chunk updates";
 
+		if (!this.mc.gameSettings.showDebugInfo) {
+			GuiHeisenbergHud.drawTitle(var8, var6);
+		}
+
 		if (this.mc.gameSettings.showKeystrokes && !this.mc.gameSettings.showDebugInfo) {
 			this.heisenbergHud.drawKeystrokes(this.mc, var8, var6, var7);
 		}

@@ -63,6 +63,13 @@ public class GuiHeisenbergHud extends Gui {
 		return ping < 150 ? EnumChatFormatting.GREEN.toString() : (ping < 300 ? EnumChatFormatting.YELLOW.toString() : EnumChatFormatting.RED.toString());
 	}
 
+	private static final String TITLE = EnumChatFormatting.BOLD + "Heisenberg";
+
+	/** game name centered at the top of the screen while playing */
+	public static void drawTitle(FontRenderer font, int scaledWidth) {
+		font.drawStringWithShadow(TITLE, (scaledWidth - font.getStringWidth(TITLE)) / 2, 2, 0x55FF55);
+	}
+
 	private static final String[] FACING = new String[] { "South (+Z)", "West (-X)", "North (-Z)", "East (+X)" };
 
 	/**

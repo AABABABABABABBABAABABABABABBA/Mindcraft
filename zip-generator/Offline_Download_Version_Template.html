@@ -114,9 +114,10 @@ window.addEventListener("load", function() {
 "Say my name!", "I am the one who knocks!", "Heisenberg!", "Yeah, science!", "99.1% pure!",
 "Now with 60 FPS!", "Tread lightly!", "Stay out of my territory!", "Better call Saul!", "Respect the chemistry!"
 ]}, worldsFolder: "OFFLINE", relays: [
-			{ addr: "wss://relay.deev.is/", name: "lax1dude relay #1", primary: relayId == 0 },
-	        { addr: "wss://relay.lax1dude.net/", name: "lax1dude relay #2", primary: relayId == 1 },
-	        { addr: "wss://relay.shhnowisnottheti.me/", name: "ayunami relay #1", primary: relayId == 2 } ]
+			{ addr: "wss://heisenberg-game.corbyiscool.workers.dev/relay", name: "Heisenberg relay (Cloudflare)", primary: true },
+	{ addr: "wss://relay.deev.is/", name: "lax1dude relay #1", primary: false },
+	        { addr: "wss://relay.lax1dude.net/", name: "lax1dude relay #2", primary: false },
+	        { addr: "wss://relay.shhnowisnottheti.me/", name: "ayunami relay #1", primary: false } ]
 		};
 		main();
 	}, 6000);

@@ -31,6 +31,9 @@ servers: [
 relays: [
 	// the LAN world relay runs on this site's own Cloudflare Worker (Durable Object at /relay)
 	{ addr: (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/relay", name: "Heisenberg relay", primary: true },
+	// the hosted Cloudflare relay, so copies of this page served from elsewhere still find a working relay
+	...(location.host === "heisenberg-game.corbyiscool.workers.dev" ? [] :
+		[{ addr: "wss://heisenberg-game.corbyiscool.workers.dev/relay", name: "Heisenberg relay (Cloudflare)", primary: false }]),
 	{ addr: "wss://relay.deev.is/", name: "lax1dude relay #1", primary: false },
 	{ addr: "wss://relay.lax1dude.net/", name: "lax1dude relay #2", primary: false },
 	{ addr: "wss://relay.shhnowisnottheti.me/", name: "ayunami relay #1", primary: false }
