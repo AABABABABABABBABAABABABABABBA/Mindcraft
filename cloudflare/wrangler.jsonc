@@ -2,7 +2,7 @@
   // Heisenberg on Cloudflare Workers: serves the web client as static assets and
   // proxies /ws to your multiplayer server so HTTPS players can connect over wss://
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "heisenberg",
+  "name": "heisenberg-game",
   "main": "src/worker.js",
   "compatibility_date": "2025-09-01",
   "assets": {
