@@ -1,5 +1,6 @@
 package net.lax1dude.eaglercraft;
 
+import net.minecraft.src.EnumChatFormatting;
 import net.minecraft.src.GuiButton;
 import net.minecraft.src.GuiScreen;
 
@@ -46,12 +47,12 @@ public class GuiScreenLicense extends GuiScreen {
 		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line00), width * 3 / 8, beginOffset * 3 / 4, 0xDDDD55);
 		EaglerAdapter.glPopMatrix();
 		
-		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line10), width / 2, beginOffset + 22, 0xFF7777);
-		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line11), width / 2, beginOffset + 33, 0xFF7777);
-		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line12), width / 2, beginOffset + 44, 0xFF7777);
+		drawCenteredString(fontRenderer, "Welcome to " + EnumChatFormatting.GREEN + "Heisenberg" + EnumChatFormatting.WHITE + "!", width / 2, beginOffset + 22, 0xFFFFFF);
+		drawCenteredString(fontRenderer, "Minecraft 1.5.2 in your browser, tuned for smooth FPS,", width / 2, beginOffset + 33, 0xDDDDDD);
+		drawCenteredString(fontRenderer, "with free multiplayer hosted on Cloudflare.", width / 2, beginOffset + 44, 0xDDDDDD);
 
-		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line20), width / 2, beginOffset + 62, 0x448844);
-		drawCenteredString(fontRenderer, new String(GuiScreenChangeWorldTimeout.line21), width / 2, beginOffset + 71, 0x448844);
+		drawCenteredString(fontRenderer, "Play with friends: Pause > Open to LAN, share the code,", width / 2, beginOffset + 62, 0x55BB55);
+		drawCenteredString(fontRenderer, "and they enter it under Singleplayer > Join LAN World.", width / 2, beginOffset + 71, 0x55BB55);
 
 		EaglerAdapter.glPushMatrix();
 		EaglerAdapter.glScalef(0.75f, 0.75f, 0.75f);
