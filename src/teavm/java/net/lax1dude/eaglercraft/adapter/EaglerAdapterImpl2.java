@@ -319,6 +319,14 @@ public class EaglerAdapterImpl2 {
 		canvas.addEventListener("mousedown", mousedown = new EventListener<MouseEvent>() {
 			@Override
 			public void handleEvent(MouseEvent evt) {
+				// a click is a user gesture, the only time browsers reliably allow
+				// pointer lock and fullscreen, so capture the mouse right here
+				if(mouseGrabWanted && !isPointerLocked()) {
+					if(autoFullscreen) {
+						enterFullscreen();
+					}
+					lockPointer(canvas, rawMouseInput);
+				}
 				int b = evt.getButton();
 				buttonStates[b == 1 ? 2 : (b == 2 ? 1 : b)] = true;
 				mouseEvents.add(evt);
@@ -1602,9 +1610,52 @@ public class EaglerAdapterImpl2 {
 	}
 	private static long mouseUngrabTimer = 0l;
 	private static int mouseUngrabTimeout = 0;
+
+	/** true while the game wants the mouse captured (in world, no menu open) */
+	private static boolean mouseGrabWanted = false;
+	private static boolean autoFullscreen = true;
+	private static boolean rawMouseInput = true;
+
+	public static final void setAutoFullscreen(boolean b) {
+		autoFullscreen = b;
+	}
+
+	public static final void setRawMouseInput(boolean b) {
+		rawMouseInput = b;
+	}
+
+	/*
+	 * Locks (hides) the cursor, with unadjustedMovement so the OS mouse
+	 * acceleration doesn't apply where the browser supports it.
+	 */
+	@JSBody(params = { "cvs", "raw" }, script =
+			"try { var p = raw ? cvs.requestPointerLock({ unadjustedMovement: true }) : cvs.requestPointerLock();"
+			+ " if(p && p.catch) p.catch(function() { try { cvs.requestPointerLock(); } catch(e) {} }); }"
+			+ " catch(e) { try { cvs.requestPointerLock(); } catch(e2) {} }")
+	private static native void lockPointer(HTMLCanvasElement cvs, boolean raw);
+
+	/*
+	 * Fullscreen the page, then capture Escape with the Keyboard Lock API so Esc
+	 * opens the pause menu instead of dropping out of fullscreen (holding Esc
+	 * still exits). Only works inside a user gesture, so it's called from mousedown.
+	 */
+	@JSBody(params = { }, script =
+			"try { var el = document.documentElement; if(!document.fullscreenElement && el.requestFullscreen) {"
+			+ " var p = el.requestFullscreen({ navigationUI: \"hide\" }); if(p && p.then) p.then(function() {"
+			+ " if(navigator.keyboard && navigator.keyboard.lock) navigator.keyboard.lock([\"Escape\"]).catch(function() {}); }).catch(function() {}); } }"
+			+ " catch(e) {}")
+	private static native void enterFullscreen();
+
+	@JSBody(params = { }, script = "return !!document.fullscreenElement;")
+	public static native boolean isFullscreen();
+
+	@JSBody(params = { }, script = "try { if(document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch(e) {}")
+	private static native void exitFullscreen();
+
 	public static final void mouseSetGrabbed(boolean grabbed) {
+		mouseGrabWanted = grabbed;
 		if(grabbed) {
-			canvas.requestPointerLock();
+			lockPointer(canvas, rawMouseInput);
 			long t = System.currentTimeMillis();
 			if(mouseUngrabTimeout != 0) Window.clearTimeout(mouseUngrabTimeout);
 			mouseUngrabTimeout = 0;
@@ -1612,7 +1663,7 @@ public class EaglerAdapterImpl2 {
 				mouseUngrabTimeout = Window.setTimeout(new TimerHandler() {
 					@Override
 					public void onTimer() {
-						canvas.requestPointerLock();
+						lockPointer(canvas, rawMouseInput);
 					}
 				}, 3000 - (int)(t - mouseUngrabTimer));
 			}
@@ -1685,7 +1736,11 @@ public class EaglerAdapterImpl2 {
 		return (p1 >= 0 && p1 < 256) ? LWJGLKeyNames[p1] : "null";
 	}
 	public static final void setFullscreen(boolean p1) {
-		Window.alert("use F11 to enter fullscreen");
+		if(p1) {
+			enterFullscreen();
+		}else {
+			exitFullscreen();
+		}
 	}
 	public static final boolean shouldShutdown() {
 		return false;

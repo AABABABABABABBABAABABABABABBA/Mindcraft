@@ -157,6 +157,8 @@ public class GameSettings {
 	public boolean showKeystrokes = false;
 	public boolean autoReconnect = true;
 	public boolean showPingNumbers = true;
+	public boolean autoFullscreen = true;
+	public boolean rawMouseInput = true;
 
 	public GameSettings(Minecraft par1Minecraft) {
 		this.keyBindings = new KeyBinding[] { this.keyBindAttack, this.keyBindUseItem, this.keyBindForward, this.keyBindLeft, this.keyBindBack, this.keyBindRight, this.keyBindJump, this.keyBindSneak, this.keyBindDrop, this.keyBindInventory,
@@ -563,6 +565,10 @@ public class GameSettings {
 			if(yee.hasKey("showKeystrokes")) showKeystrokes = yee.getBoolean("showKeystrokes");
 			if(yee.hasKey("autoReconnect")) autoReconnect = yee.getBoolean("autoReconnect");
 			if(yee.hasKey("showPingNumbers")) showPingNumbers = yee.getBoolean("showPingNumbers");
+			if(yee.hasKey("autoFullscreen")) autoFullscreen = yee.getBoolean("autoFullscreen");
+			if(yee.hasKey("rawMouseInput")) rawMouseInput = yee.getBoolean("rawMouseInput");
+			EaglerAdapter.setAutoFullscreen(autoFullscreen);
+			EaglerAdapter.setRawMouseInput(rawMouseInput);
 			EaglerAdapter.setRenderScale(renderScale);
 			
 			if(voiceListenRadius < 5) voiceListenRadius = 5;
@@ -652,6 +658,8 @@ public class GameSettings {
 		yee.setBoolean("showKeystrokes", showKeystrokes);
 		yee.setBoolean("autoReconnect", autoReconnect);
 		yee.setBoolean("showPingNumbers", showPingNumbers);
+		yee.setBoolean("autoFullscreen", autoFullscreen);
+		yee.setBoolean("rawMouseInput", rawMouseInput);
 		
 		for (int var4 = 0; var4 < this.keyBindings.length; ++var4) {
 			yee.setInteger(keyBindings[var4].keyDescription, keyBindings[var4].keyCode);

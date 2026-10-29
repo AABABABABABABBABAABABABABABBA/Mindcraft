@@ -106,11 +106,14 @@ public class GuiScreenHeisenbergSettings extends GuiScreen {
 		this.buttonList.add(new GuiButton(9, left, y, 150, 20, ""));
 		this.buttonList.add(new GuiButton(10, right, y, 150, 20, ""));
 		y += 24;
+		this.buttonList.add(new GuiButton(14, left, y, 150, 20, ""));
+		this.buttonList.add(new GuiButton(15, right, y, 150, 20, ""));
+		y += 24;
 		this.buttonList.add(new GuiButton(11, left, y, 100, 20, "Preset: Potato"));
 		this.buttonList.add(new GuiButton(12, left + 105, y, 100, 20, "Preset: Balanced"));
 		this.buttonList.add(new GuiButton(13, left + 210, y, 100, 20, "Preset: Quality"));
 
-		this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, StatCollector.translateToLocal("gui.done")));
+		this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 184, StatCollector.translateToLocal("gui.done")));
 		updateLabels();
 	}
 
@@ -126,6 +129,8 @@ public class GuiScreenHeisenbergSettings extends GuiScreen {
 			case 7: b.displayString = "Auto Reconnect: " + onOff(settings.autoReconnect); break;
 			case 8: b.displayString = "Ping In Tab List: " + onOff(settings.showPingNumbers); break;
 			case 9: b.displayString = "Chunk Updates: " + (settings.chunkUpdatePerFrame + 1); break;
+			case 14: b.displayString = "Auto Fullscreen: " + onOff(settings.autoFullscreen); break;
+			case 15: b.displayString = "Raw Mouse Input: " + onOff(settings.rawMouseInput); break;
 			case 10: b.displayString = "Max Framerate: " + StatCollector.translateToLocal(new String[] { "performance.max", "performance.balanced", "performance.powersaver" }[settings.limitFramerate % 3]); break;
 			default: break;
 			}
@@ -148,6 +153,14 @@ public class GuiScreenHeisenbergSettings extends GuiScreen {
 			}
 			break;
 		case 7: settings.autoReconnect = !settings.autoReconnect; break;
+		case 14:
+			settings.autoFullscreen = !settings.autoFullscreen;
+			EaglerAdapter.setAutoFullscreen(settings.autoFullscreen);
+			break;
+		case 15:
+			settings.rawMouseInput = !settings.rawMouseInput;
+			EaglerAdapter.setRawMouseInput(settings.rawMouseInput);
+			break;
 		case 8: settings.showPingNumbers = !settings.showPingNumbers; break;
 		case 9: settings.setOptionValue(EnumOptions.CHUNK_UPDATES, 1); break;
 		case 10: settings.setOptionValue(EnumOptions.FRAMERATE_LIMIT, 1); break;
@@ -175,7 +188,7 @@ public class GuiScreenHeisenbergSettings extends GuiScreen {
 		this.drawDefaultBackground();
 		this.drawCenteredString(this.fontRenderer, "Heisenberg Settings", this.width / 2, 15, 16777215);
 		super.drawScreen(mouseX, mouseY, partialTicks);
-		int y = this.height / 6 + 133;
+		int y = this.height / 6 + 158;
 		if (presetMessage != null && Minecraft.getSystemTime() - presetMessageTime < 3000L) {
 			this.drawCenteredString(this.fontRenderer, presetMessage, this.width / 2, y, 0x55FF55);
 		} else {
