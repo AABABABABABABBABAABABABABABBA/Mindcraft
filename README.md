@@ -42,6 +42,19 @@ Open **Options → Heisenberg Settings...** to change these.
 - **Heisenberg Block** (ID 200): craft it from 8 lapis lazuli around 1 diamond. It glows, gives off blue particles and is nearly explosion-proof. Right-click it ("say my name") for 30 seconds of Speed II, Haste II and Night Vision, with a 10-second cooldown. It works in singleplayer and LAN worlds, including Cloudflare-hosted multiplayer, but not on the Bukkit server. To use your own image as the texture, run `python3 tools/make-heisenberg-texture.py your-image.png`, then `./CompileEPK.sh`.
 - **Mouse capture:** clicking into the world locks and hides the cursor and, with Auto Fullscreen on, makes the game fullscreen. In Chrome and Edge, Esc opens the pause menu instead of leaving fullscreen; hold Esc to exit. Raw Mouse Input turns off OS mouse acceleration.
 
+### Phones, tablets and Chromebooks
+
+- **Touch controls (Pocket Edition style).** They appear on the first touch and hide when a real keyboard is used.
+  - **Moving:** the D-pad walks; double-tap ▲ to sprint, and tap its center to toggle sneak. The round button jumps.
+  - **Aiming and acting:** drag anywhere to look. Tap to use or place, and hold to break or attack. Tap the hotbar to pick a slot.
+  - **Buttons:** ⋯ opens the inventory and Q drops the held item. Top-right are camera (F5), chat and pause.
+  - **Menus:** touches work like mouse clicks and drags, and the ⌨ button opens the phone keyboard for typing.
+- **Runs without a mouse lock.** Devices that can't lock the mouse pointer (iPhone, iPad) used to get an "incompatible device" screen. They now start normally.
+- **Light settings on first run.** On phones, tablets and Chromebooks (and other devices with ≤4 CPU cores or ≤4 GB memory), the game starts on Short render distance, Fast graphics, minimal particles and no clouds.
+- **Resolution cap.** Phones and tablets render at 1× screen density instead of 2–3×; other low-end devices at 1.25× and desktops at 2× max. That cuts the number of pixels drawn by up to 9× on phones.
+- **Add to Home Screen** installs it as a fullscreen landscape app (web app manifest and icons). This is also how iPhones get fullscreen.
+- **Smooth zoom-free page:** pinch zoom, page scrolling, text selection and long-press menus are disabled while playing.
+
 ### Deploy to Cloudflare Workers
 
 The `cloudflare/` folder is a Worker that does three things:

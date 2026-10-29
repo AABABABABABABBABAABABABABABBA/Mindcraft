@@ -288,12 +288,9 @@ public class EaglerAdapterImpl2 {
 		canvas.setWidth(sw);
 		canvas.setHeight(sh);
 		rootElement.appendChild(canvas);
-		try {
-			doc.exitPointerLock();
-		}catch(Throwable t) {
-			Client.showIncompatibleScreen("Mouse cursor lock is not available on this device!");
-			throw new RuntimeException("Mouse cursor lock is not available on this device!");
-		}
+		// phones and tablets have no pointer lock, they use the touch controls instead
+		safeExitPointerLock();
+		detectDeviceClass();
 		SelfDefence.init(canvas);
 		// render straight into the visible canvas, the old offscreen canvas + 2D
 		// drawImage() blit cost a full-screen copy every single frame
@@ -325,7 +322,9 @@ public class EaglerAdapterImpl2 {
 					if(autoFullscreen) {
 						enterFullscreen();
 					}
-					lockPointer(canvas, rawMouseInput);
+					if(!touchDevice) {
+						lockPointer(canvas, rawMouseInput);
+					}
 				}
 				int b = evt.getButton();
 				buttonStates[b == 1 ? 2 : (b == 2 ? 1 : b)] = true;
@@ -361,6 +360,7 @@ public class EaglerAdapterImpl2 {
 		win.addEventListener("keydown", keydown = new EventListener<KeyboardEvent>() {
 			@Override
 			public void handleEvent(KeyboardEvent evt) {
+				if(isFromOverlay(evt)) return;
 				//keyStates[remapKey(evt.getKeyCode())] = true;
 				keyStates[remapKey(getWhich(evt))] = true;
 				keyEvents.add(evt);
@@ -371,6 +371,7 @@ public class EaglerAdapterImpl2 {
 		win.addEventListener("keyup", keyup = new EventListener<KeyboardEvent>() {
 			@Override
 			public void handleEvent(KeyboardEvent evt) {
+				if(isFromOverlay(evt)) return;
 				//keyStates[remapKey(evt.getKeyCode())] = false;
 				keyStates[remapKey(getWhich(evt))] = false;
 				keyEvents.add(evt);
@@ -381,6 +382,7 @@ public class EaglerAdapterImpl2 {
 		win.addEventListener("keypress", keypress = new EventListener<KeyboardEvent>() {
 			@Override
 			public void handleEvent(KeyboardEvent evt) {
+				if(isFromOverlay(evt)) return;
 				if(enableRepeatEvents && evt.isRepeat()) keyEvents.add(evt);
 				evt.preventDefault();
 				evt.stopPropagation();
@@ -1629,8 +1631,8 @@ public class EaglerAdapterImpl2 {
 	 * acceleration doesn't apply where the browser supports it.
 	 */
 	@JSBody(params = { "cvs", "raw" }, script =
-			"try { var p = raw ? cvs.requestPointerLock({ unadjustedMovement: true }) : cvs.requestPointerLock();"
-			+ " if(p && p.catch) p.catch(function() { try { cvs.requestPointerLock(); } catch(e) {} }); }"
+			"if(!cvs.requestPointerLock) return; try { var p = raw ? cvs.requestPointerLock({ unadjustedMovement: true }) : cvs.requestPointerLock();"
+			+ " if(p && p.catch) p.catch(function() { try { var q = cvs.requestPointerLock(); if(q && q.catch) q.catch(function() {}); } catch(e) {} }); }"
 			+ " catch(e) { try { cvs.requestPointerLock(); } catch(e2) {} }")
 	private static native void lockPointer(HTMLCanvasElement cvs, boolean raw);
 
@@ -1654,6 +1656,10 @@ public class EaglerAdapterImpl2 {
 
 	public static final void mouseSetGrabbed(boolean grabbed) {
 		mouseGrabWanted = grabbed;
+		if(grabbed && touchDevice) {
+			// touch screens look around by dragging, there is no pointer to lock
+			return;
+		}
 		if(grabbed) {
 			lockPointer(canvas, rawMouseInput);
 			long t = System.currentTimeMillis();
@@ -1671,7 +1677,7 @@ public class EaglerAdapterImpl2 {
 			mouseUngrabTimer = System.currentTimeMillis();
 			if(mouseUngrabTimeout != 0) Window.clearTimeout(mouseUngrabTimeout);
 			mouseUngrabTimeout = 0;
-			doc.exitPointerLock();
+			safeExitPointerLock();
 		}
 	}
 	public static final int mouseGetDX() {
@@ -1787,6 +1793,7 @@ public class EaglerAdapterImpl2 {
 	private static native double perfNow();
 
 	public static final void updateDisplay() {
+		publishOverlayState(mouseGrabWanted, hotbarX, hotbarY, hotbarW, hotbarH);
 		waitForFrame();
 		if(frameCapFps > 0) {
 			// skip refreshes until the frame cap allows another frame, 1ms slack for timer jitter
@@ -1823,8 +1830,71 @@ public class EaglerAdapterImpl2 {
 		renderScale = scale < 0.25f ? 0.25 : (scale > 1.0f ? 1.0 : scale);
 	}
 
+	/**
+	 * Highest device pixel ratio rendered at. Phones report 3x and tablets 2x,
+	 * rendering every one of those pixels costs far more than it's worth on a
+	 * mobile GPU, so they're capped at 1x and other low end devices at 1.25x.
+	 */
+	private static double maxPixelRatio = 2.0;
+	private static boolean touchDevice = false;
+	private static boolean lowEndDevice = false;
+
+	@JSBody(params = { }, script = "try { return !!(window.matchMedia && window.matchMedia(\"(pointer: coarse)\").matches) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); } catch(e) { return false; }")
+	private static native boolean detectTouchPrimary();
+
+	@JSBody(params = { }, script = "try { var n = navigator; return (n.deviceMemory && n.deviceMemory <= 4) || (n.hardwareConcurrency && n.hardwareConcurrency <= 4) || /CrOS|Android|iPhone|iPad|iPod|Mobile/i.test(n.userAgent); } catch(e) { return false; }")
+	private static native boolean detectLowEnd();
+
+	private static void detectDeviceClass() {
+		touchDevice = detectTouchPrimary();
+		lowEndDevice = touchDevice || detectLowEnd();
+		maxPixelRatio = touchDevice ? 1.0 : (lowEndDevice ? 1.25 : 2.0);
+	}
+
+	/** phones, tablets, Chromebooks and other weak hardware, used to pick default settings */
+	public static final boolean isLowEndDevice() {
+		return lowEndDevice;
+	}
+
+	public static final boolean isTouchDevice() {
+		return touchDevice;
+	}
+
 	private static final double getPixelScale() {
-		return win.getDevicePixelRatio() * renderScale;
+		return Math.min(win.getDevicePixelRatio(), maxPixelRatio) * renderScale;
+	}
+
+	@JSBody(params = { }, script = "try { if(document.exitPointerLock) document.exitPointerLock(); } catch(e) {}")
+	private static native void safeExitPointerLock();
+
+	@JSBody(params = { "e" }, script = "var t = e.target; return !!(t && t.getAttribute && t.getAttribute(\"data-hb-ignore\"));")
+	private static native boolean isFromOverlay(JSObject e);
+
+	private static float hotbarX = 0, hotbarY = 0, hotbarW = 0, hotbarH = 0;
+
+	/** where the hotbar is on screen in CSS pixels, so touch taps can select slots */
+	public static final void setTouchHotbar(float guiX, float guiY, float guiW, float guiH, int guiScale) {
+		double f = guiScale / getPixelScale();
+		hotbarX = (float)(guiX * f);
+		hotbarY = (float)(guiY * f);
+		hotbarW = (float)(guiW * f);
+		hotbarH = (float)(guiH * f);
+	}
+
+	/* state the touch overlay reads every frame */
+	@JSBody(params = { "grabbed", "x", "y", "w", "h" }, script =
+			"var s = window.__hbState || (window.__hbState = {}); s.grabbed = grabbed; s.hx = x; s.hy = y; s.hw = w; s.hh = h;")
+	private static native void publishOverlayState(boolean grabbed, float x, float y, float w, float h);
+
+	@JSBody(params = { "src" }, script = "try { (new Function(src))(); } catch(e) { console.error(\"touch controls failed: \" + e); }")
+	private static native void evalScript(String src);
+
+	/** loads the on-screen touch controls (assets/heisenberg/touch.js), they appear on the first touch */
+	public static final void installTouchControls() {
+		String src = fileContents("/heisenberg/touch.js");
+		if(src != null) {
+			evalScript(src);
+		}
 	}
 	public static final void setVSyncEnabled(boolean p1) {
 		

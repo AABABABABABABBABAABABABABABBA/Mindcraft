@@ -587,6 +587,16 @@ public class GameSettings {
 			IntegratedServer.relayManager.load(LocalStorageManager.gameSettingsStorage.getTagList("relays"));
 		}else {
 			IntegratedServer.relayManager.load(null);
+			if(EaglerAdapter.isLowEndDevice()) {
+				// first run on a phone, tablet or Chromebook: start light, players can turn things up
+				renderDistance = 2;
+				fancyGraphics = false;
+				ambientOcclusion = 0;
+				clouds = false;
+				particleSetting = 2;
+				chunkUpdatePerFrame = 0;
+				hudMode = 1;
+			}
 		}
 	}
 

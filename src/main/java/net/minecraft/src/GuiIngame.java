@@ -58,6 +58,7 @@ public class GuiIngame extends Gui {
 		int var6 = var5.getScaledWidth();
 		int var7 = var5.getScaledHeight();
 		FontRenderer var8 = this.mc.fontRenderer;
+		EaglerAdapter.setTouchHotbar(var6 / 2 - 91, var7 - 22, 182, 22, var5.getScaleFactor());
 		this.mc.entityRenderer.setupOverlayRendering();
 		EaglerAdapter.glEnable(EaglerAdapter.GL_BLEND);
 

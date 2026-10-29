@@ -274,6 +274,7 @@ public class Minecraft implements Runnable {
 		OpenGlHelper.initializeTextures();
 		TextureManager.init();
 		this.gameSettings = new GameSettings(this);
+		EaglerAdapter.installTouchControls();
 		this.texturePackList = new TexturePackList(this);
 		this.renderEngine = new RenderEngine(this.texturePackList, this.gameSettings);
 		
@@ -1248,7 +1249,8 @@ public class Minecraft implements Runnable {
 					}
 
 					if (this.currentScreen == null) {
-						if ((!this.inGameHasFocus || !EaglerAdapter.isPointerLocked()) && EaglerAdapter.mouseGetEventButtonState()) {
+						// touch screens never lock the pointer, re-focusing on every tap would reset the attack cooldown
+						if ((!this.inGameHasFocus || (!EaglerAdapter.isPointerLocked() && !EaglerAdapter.isTouchDevice())) && EaglerAdapter.mouseGetEventButtonState()) {
 							this.setIngameFocus();
 						}
 					} else if (this.currentScreen != null) {
