@@ -39,6 +39,8 @@ Open **Options → Heisenberg Settings...** to change these.
 - **Fullbright**: see in caves and at night.
 - **Keystrokes + CPS** overlay: shows WASD, mouse buttons with clicks per second, and space.
 - Coordinates now show the direction you're facing.
+- **Heisenberg Block** (ID 200): craft it from 8 lapis lazuli around 1 diamond. It glows, gives off blue particles and is nearly explosion-proof. Right-click it ("say my name") for 30 seconds of Speed II, Haste II and Night Vision, with a 10-second cooldown. It works in singleplayer and LAN worlds, including Cloudflare-hosted multiplayer, but not on the Bukkit server. To use your own image as the texture, run `python3 tools/make-heisenberg-texture.py your-image.png`, then `./CompileEPK.sh`.
+- **Mouse capture:** clicking into the world locks and hides the cursor and, with Auto Fullscreen on, makes the game fullscreen. In Chrome and Edge, Esc opens the pause menu instead of leaving fullscreen; hold Esc to exit. Raw Mouse Input turns off OS mouse acceleration.
 
 ### Deploy to Cloudflare Workers
 

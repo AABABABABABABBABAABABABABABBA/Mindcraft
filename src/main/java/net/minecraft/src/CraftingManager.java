@@ -127,6 +127,7 @@ public class CraftingManager {
 		this.addRecipe(new ItemStack(Block.pressurePlateGold, 1), new Object[] { "##", '#', Item.ingotGold });
 		this.addRecipe(new ItemStack(Block.dispenser, 1), new Object[] { "###", "#X#", "#R#", '#', Block.cobblestone, 'X', Item.bow, 'R', Item.redstone });
 		this.addRecipe(new ItemStack(Block.dropper, 1), new Object[] { "###", "# #", "#R#", '#', Block.cobblestone, 'R', Item.redstone });
+		this.addRecipe(new ItemStack(Block.heisenberg, 1), new Object[] { "LLL", "LDL", "LLL", 'L', new ItemStack(Item.dyePowder, 1, 4), 'D', Item.diamond });
 		this.addRecipe(new ItemStack(Block.pistonBase, 1), new Object[] { "TTT", "#X#", "#R#", '#', Block.cobblestone, 'X', Item.ingotIron, 'R', Item.redstone, 'T', Block.planks });
 		this.addRecipe(new ItemStack(Block.pistonStickyBase, 1), new Object[] { "S", "P", 'S', Item.slimeBall, 'P', Block.pistonBase });
 		this.addRecipe(new ItemStack(Item.bed, 1), new Object[] { "###", "XXX", '#', Block.cloth, 'X', Block.planks });

@@ -240,6 +240,9 @@ public class Block {
 	public static final Block railActivator = (new BlockRailPowered(157)).setHardness(0.7F).setStepSound(soundMetalFootstep).setUnlocalizedName("activatorRail");
 	public static final Block dropper = (new BlockDropper(158)).setHardness(3.5F).setStepSound(soundStoneFootstep).setUnlocalizedName("dropper");
 
+	/** Heisenberg: glows, nearly explosion proof, right click for a speed/haste/night vision boost */
+	public static final Block heisenberg = (new BlockHeisenberg(200)).setHardness(25.0F).setResistance(6000.0F).setLightValue(1.0F).setStepSound(soundStoneFootstep).setUnlocalizedName("heisenberg");
+
 	/** ID of the block. */
 	public final int blockID;
 

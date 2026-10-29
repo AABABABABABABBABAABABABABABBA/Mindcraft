@@ -1469,3 +1469,4 @@ advMode.allPlayers=Use "@a" to target all players
 
 advMode.notEnabled=Command blocks are not enabled on this server
 advMode.notAllowed=Must be an opped player in creative mode
+tile.heisenberg.name=Heisenberg Block
