@@ -53,7 +53,18 @@ jobs:
           ARGS=""
           if [ -n "$MC_SERVER" ]; then ARGS="$ARGS --var MC_SERVER:$MC_SERVER"; fi
           if [ -n "$TURN_KEY_ID" ]; then ARGS="$ARGS --var TURN_KEY_ID:$TURN_KEY_ID"; fi
-          npx wrangler deploy $ARGS
+          npx wrangler deploy $ARGS | tee deploy.log
+          grep -o 'https://[a-z0-9.-]*\.workers\.dev' deploy.log | head -1 > deploy-url.txt || true
+
+      - name: Smoke test the live relay
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        working-directory: cloudflare
+        run: |
+          URL=$(cat deploy-url.txt)
+          if [ -z "$URL" ]; then echo "::warning::could not find the workers.dev URL in the deploy output"; exit 0; fi
+          echo "Testing $URL"
+          curl -sS -o /dev/null -w "page: %{http_code}\n" "$URL/"
+          node test/relay-protocol.mjs "wss://${URL#https://}/relay"
 
       - name: Set TURN secret
         if: env.CLOUDFLARE_API_TOKEN != '' && env.TURN_KEY_API_TOKEN != ''
