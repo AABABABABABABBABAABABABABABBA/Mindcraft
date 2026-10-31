@@ -128,25 +128,10 @@ tools/build-client.sh        # writes javascript/classes.js
 
 ### MY LAN WORLD RELAYS (relay.deev.is, relay.lax1dude.net) WILL REMAIN ONLINE FOR CONVENIENCE
 
-# Eaglercraft
-
-![eaglercraft](https://g.deev.is/eaglercraft/cover.png)
-:-:
-Eaglercraft is real Minecraft 1.5.2 that you can play in any regular web browser. That includes school chromebooks, it works on all chromebooks. It supports both singleplayer and multiplayer.
-
-**Currently maintained by [ayunami2000](https://github.com/ayunami2000)**
-
-**For any questions you can join the discord server and hit us up there [https://discord.gg/Ekzcgs3DKZ](https://discord.gg/Ekzcgs3DKZ)**
+# Heisenberg
+Heisenberg is real Minecraft 1.5.2 that you can play in any regular web browser. That includes school chromebooks, it works on all chromebooks. It supports both singleplayer and multiplayer.
 
 # Quick Start
-
-### Client: [https://g.deev.is/eaglercraft/](https://g.deev.is/eaglercraft/) [^1]
-
-### Offline Client Download: [Offline_Download_Version.html](https://github.com/lax1dude/eaglercraft/raw/main/stable-download/Offline_Download_Version.html)
-
-**(right click the link and press 'Save link as...' to download the file)**
-
-### Play Minecraft Beta Singleplayer: [https://g.deev.is/eaglercraft/beta/](https://g.deev.is/eaglercraft/beta/)
 
 [^1]: A list of public servers are already added into the official client
 
